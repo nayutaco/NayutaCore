@@ -1,0 +1,11 @@
+framework module SwiftGRPC {
+  umbrella header "SwiftGRPC-umbrella.h"
+
+  export *
+  module * { export * }
+}
+
+module SwiftGRPC.Swift {
+    header "SwiftGRPC-Swift.h"
+    requires objc
+}

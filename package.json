@@ -1,0 +1,58 @@
+{
+  "name": "NayutaBox",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "android": "react-native run-android",
+    "ios": "react-native run-ios",
+    "start": "react-native start",
+    "test": "jest",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "@react-native-community/masked-view": "^0.1.7",
+    "crypto-js": "^4.0.0",
+    "expo-localization": "^8.1.0",
+    "i18n-js": "^3.5.1",
+    "popup-ui": "^1.0.10",
+    "react": "16.9.0",
+    "react-circular-progressbar": "^2.0.3",
+    "react-native": "0.61.5",
+    "react-native-chart-kit": "^5.3.1",
+    "react-native-circular-progress": "^1.3.6",
+    "react-native-default-preference": "^1.4.2",
+    "react-native-elements": "^1.2.7",
+    "react-native-gesture-handler": "^1.6.1",
+    "react-native-i18n": "^2.0.15",
+    "react-native-keychain": "^6.0.0",
+    "react-native-paper": "^3.8.0",
+    "react-native-qrcode-svg": "^6.0.3",
+    "react-native-reanimated": "^1.8.0",
+    "react-native-safe-area-context": "^0.6.4",
+    "react-native-screens": "^2.4.0",
+    "react-native-securerandom": "^1.0.0-rc.0",
+    "react-native-simple-encryption": "^1.2.1",
+    "react-native-svg": "^11.0.1",
+    "react-native-vector-icons": "^6.6.0",
+    "react-navigation": "^4.3.7",
+    "react-navigation-material-bottom-tabs": "^2.2.10",
+    "react-navigation-stack": "^2.3.11",
+    "react-navigation-tabs": "^2.8.11",
+    "react-redux": "^7.2.0",
+    "redux": "^4.0.5",
+    "rn-tooltip": "^2.0.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.9.0",
+    "@babel/runtime": "^7.9.2",
+    "@react-native-community/eslint-config": "^0.0.7",
+    "babel-jest": "^25.3.0",
+    "eslint": "^6.8.0",
+    "jest": "^25.3.0",
+    "metro-react-native-babel-preset": "^0.58.0",
+    "react-test-renderer": "16.9.0"
+  },
+  "jest": {
+    "preset": "react-native"
+  }
+}

@@ -1,0 +1,6 @@
+framework module ioscrypto {
+  umbrella header "ioscrypto.h"
+
+  export *
+  module * { export * }
+}

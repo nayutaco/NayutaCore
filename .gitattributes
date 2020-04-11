@@ -1,0 +1,2 @@
+*.pbxproj -text
+ios/Lndmobile.framework/Lndmobile filter=lfs diff=lfs merge=lfs -text

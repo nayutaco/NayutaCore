@@ -1,0 +1,7 @@
+rootProject.name = 'NayutaBox'
+include ':react-native-svg', ':androidcore-release', ':commons-compress-1.18', ':xz-1.8', ':JavaBitcoindRpcClient-1.0.0', ':lngrpc-1.0'
+project(':react-native-svg').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-svg/android')
+include ':react-native-gesture-handler', ':androidcrypto-release', ':lndmobilewrapper-release', ':Lndmobile'
+project(':react-native-gesture-handler').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-gesture-handler/android')
+apply from: file("../node_modules/@react-native-community/cli-platform-android/native_modules.gradle"); applyNativeModulesSettingsGradle(settings)
+include ':app'
