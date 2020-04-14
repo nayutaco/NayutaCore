@@ -159,6 +159,12 @@ class HomeScreen extends Component {
   }
 
   async componentDidMount() {
+    //let network = "testnet"
+    //let password = "password"
+    //androidCoreWrapperModule.setUp(GetBitcoinConf(network,password))
+    //androidCoreWrapperModule.startCore(true);
+   // var that = this;
+   
 
 
 
@@ -214,7 +220,16 @@ class HomeScreen extends Component {
       that.setState({ backend: backend })
     }
     console.log("backend ", that.state.backend);
-    await that.loadServices();
+   /* setInterval(function(){
+      that.setState({syncProgress:that.state.syncProgress+1})
+
+      if(that.state.syncProgress == 2){
+       
+       
+      }
+  },5000);*/
+ 
+     await that.loadServices();
 
 
 
@@ -235,11 +250,12 @@ class HomeScreen extends Component {
     const responseJson = await response.json();
     CustomLog("res", responseJson);
     this.setState({ startUpData: responseJson });
+    
     let fromJavaCode = await lndMobileWrapperModule.checkIfWalletExists(network);
     console.log("wallet exists", fromJavaCode);
     let res = JSON.parse(fromJavaCode);
-
-    let startRes = await that.startLND()
+   
+   let startRes = await that.startLND()
     console.log("start res", startRes);
 
     if (res.exists) {
@@ -248,8 +264,8 @@ class HomeScreen extends Component {
     } else {
       that.setState({ topStatusText: "creating wallet..." })
       await that.createNewLNDWallet();
-    }
-
+    } 
+ 
     const eventEmitter = new NativeEventEmitter(NativeModules.ToastExample);
     CustomLog("did mount");
 
@@ -362,10 +378,15 @@ class HomeScreen extends Component {
       }
     })
 
+      //androidCoreWrapperModule.setUp(GetBitcoinConf(network,password))
+          //androidCoreWrapperModule.startCore(true);
+
   }
 
 
   async startLND() {
+      var that = this;
+   
     CustomLog("starting lnd")
     const { network, backend, password } = this.state;
     var args = "--tor.active --tor.streamisolation --tor.v3 --listen=localhost"; //this stops neutrino working?

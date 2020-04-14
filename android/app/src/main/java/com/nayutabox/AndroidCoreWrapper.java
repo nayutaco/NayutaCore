@@ -78,7 +78,7 @@ public class AndroidCoreWrapper extends ReactContextBaseJavaModule {
 
         WritableMap payload = Arguments.createMap();
         // Put data to map
-        payload.putString("data", event); 
+        payload.putString("data", event);
 
         reactContext
                 .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
@@ -86,7 +86,7 @@ public class AndroidCoreWrapper extends ReactContextBaseJavaModule {
       }
     };
 
-    MainController.setUp(getReactApplicationContext(),config,getReactApplicationContext().getCurrentActivity(),myCallback);
+    MainController.setUp(reactContext,config,reactContext.getCurrentActivity(),myCallback);
 
 
   }

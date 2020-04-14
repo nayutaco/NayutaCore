@@ -83,7 +83,7 @@ public class LNDMobileWrapper extends ReactContextBaseJavaModule {
         super(context);
         reactContext = context;
 
-        Cache cache = new DiskBasedCache(getReactApplicationContext().getCacheDir(), 1024 * 1024); // 1MB cap
+        Cache cache = new DiskBasedCache(reactContext.getCacheDir(), 1024 * 1024); // 1MB cap
 
         Network network = new BasicNetwork(new HurlStack());
 
@@ -238,9 +238,9 @@ public class LNDMobileWrapper extends ReactContextBaseJavaModule {
     @ReactMethod
     public void checkIfWalletExists(String network, final Promise promise) {
 
-        Context context = getReactApplicationContext();
 
-        String path = context.getFilesDir() + "/data/chain/bitcoin/" + network + "/wallet.db";
+
+        String path = reactContext.getFilesDir() + "/data/chain/bitcoin/" + network + "/wallet.db";
         JSONObject json = new JSONObject();
         File f = new File(path);
         try {
@@ -284,8 +284,8 @@ public class LNDMobileWrapper extends ReactContextBaseJavaModule {
 
 
         String macaroon = getMacaroon(network, "base64");
-        Context context = getReactApplicationContext();
-        String path = context.getFilesDir() + "/tls.cert";
+
+        String path = reactContext.getFilesDir() + "/tls.cert";
 
 
         try {
@@ -301,7 +301,7 @@ public class LNDMobileWrapper extends ReactContextBaseJavaModule {
 
             Log.i(TAG, "cert contents " + cert);
 
-            path = context.getNoBackupFilesDir() + "/tordata/hostname";
+            path = reactContext.getNoBackupFilesDir() + "/tordata/hostname";
             String onionAddress = new String(Files.readAllBytes(Paths.get(path)));
             onionAddress = onionAddress.replaceAll("\n", "").replaceAll("\r", "");
             Log.i(TAG, "onions address " + onionAddress);
@@ -330,9 +330,8 @@ public class LNDMobileWrapper extends ReactContextBaseJavaModule {
     }
 
     String getMacaroon(String network, String format) {
-        Context context = getReactApplicationContext();
 
-        String path = context.getFilesDir() + "/data/chain/bitcoin/" + network + "/admin.macaroon";
+        String path = reactContext.getFilesDir() + "/data/chain/bitcoin/" + network + "/admin.macaroon";
 
 
         File f = new File(path);
@@ -353,8 +352,8 @@ public class LNDMobileWrapper extends ReactContextBaseJavaModule {
     }
 
     String getCert(String format) {
-        Context context = getReactApplicationContext();
-        String path = context.getFilesDir() + "/tls.cert";
+
+        String path = reactContext.getFilesDir() + "/tls.cert";
 
         File f = new File(path);
         try {
@@ -376,8 +375,8 @@ public class LNDMobileWrapper extends ReactContextBaseJavaModule {
 
     @ReactMethod
     public void restartApp() {
-        Context context = getReactApplicationContext();
-        ProcessPhoenix.triggerRebirth(context);
+
+        ProcessPhoenix.triggerRebirth(reactContext);
 
     }
 
@@ -406,8 +405,8 @@ public class LNDMobileWrapper extends ReactContextBaseJavaModule {
                 }
 
                 try {
-                    Context context = getReactApplicationContext();
-                    HttpsURLConnection.setDefaultSSLSocketFactory(getSocketFactory(context));
+
+                    HttpsURLConnection.setDefaultSSLSocketFactory(getSocketFactory(reactContext));
                     JsonObjectRequest jsonObjReq = new JsonObjectRequest(Request.Method.GET,
                             url, null,
 
@@ -477,11 +476,13 @@ public class LNDMobileWrapper extends ReactContextBaseJavaModule {
     @ReactMethod
     public void startLND(String startArgs, String config, boolean bootstrap, final Promise promise) {
 
-        Context context = getReactApplicationContext();
+        Runnable startLndThread = new Runnable() {
+            @Override
+            public void run() {
 
-        final File appDir = context.getFilesDir();
+        final File appDir =reactContext.getFilesDir();
 
-        saveConfig(context, config, appDir);
+        saveConfig(reactContext, config, appDir);
         boolean testnet = config.contains("testnet=1");
 
         if (bootstrap) {
@@ -503,9 +504,9 @@ public class LNDMobileWrapper extends ReactContextBaseJavaModule {
 
             String outputPath = appDir + "/data/chain/bitcoin";
 
-            moveFile(context, neutrinoDB, outputPath, directory);
-            moveFile(context, blockheadersBin, outputPath, directory);
-            moveFile(context, regFilterHeadersBin, outputPath, directory);
+            moveFile(reactContext, neutrinoDB, outputPath, directory);
+            moveFile(reactContext, blockheadersBin, outputPath, directory);
+            moveFile(reactContext, regFilterHeadersBin, outputPath, directory);
         }
 
         Log.i(TAG, "start lnd");
@@ -543,9 +544,9 @@ public class LNDMobileWrapper extends ReactContextBaseJavaModule {
             }
         }
 
-        Runnable startLndThread = new Runnable() {
-            @Override
-            public void run() {
+
+                android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND);
+
                 Lndmobile.start(args, new UnlockCallback(), new RPCCallback());
             }
         };
