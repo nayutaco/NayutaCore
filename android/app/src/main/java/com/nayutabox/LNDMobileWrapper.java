@@ -381,6 +381,31 @@ public class LNDMobileWrapper extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
+    public void stopLND() {
+
+        Log.i(TAG, "stop lnd");
+        Log.d(TAG, "stop lnd");
+        class RPCCallback implements Callback {
+            @Override
+            public void onError(Exception e) {
+                Log.i(TAG, "stop lnd err");
+                Log.d(TAG, "top lnd err");
+            }
+
+            @Override
+            public void onResponse(byte[] bytes) {
+                Log.i(TAG, "stop lnd res");
+                Log.d(TAG, "stop lnd res");
+
+            }
+        }
+
+        byte[] bytes = StopRequest.getDefaultInstance().toByteArray();
+       Lndmobile.stopDaemon(bytes, new RPCCallback());
+
+    }
+
+    @ReactMethod
     public void makeHttpRequest(String url, final Promise promise) {
 
         Runnable makeHttpRequest = new Runnable() {

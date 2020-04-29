@@ -36,6 +36,8 @@ target 'NayutaWallet' do
 
 
 
+  pod 'RNDeviceInfo', :path => '../node_modules/react-native-device-info'
+
   target 'NayutaWalletTests' do
     inherit! :search_paths
     # Pods for testing

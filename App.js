@@ -6,13 +6,11 @@
  * @flow
  */
 
-import React from 'react'; 
-import HomeScreen from './screens/Home/HomeScreen';
+import React from 'react';  
 import AppNavigator from './navigation/AppNavigator'; 
 import { 
   StyleSheet, 
-  View, 
-  StatusBar,
+  View,  
 } from 'react-native';
 
 import { 
@@ -25,8 +23,7 @@ import {
 const App: () => React$Node = () => {
  
   return (
-    <View style={styles.containerMain}> 
-     {/*<HomeScreen/>*/}
+    <View style={styles.containerMain}>  
      <AppNavigator/>
        
     </View>

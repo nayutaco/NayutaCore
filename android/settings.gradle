@@ -1,4 +1,6 @@
 rootProject.name = 'NayutaBox'
+include ':react-native-device-info'
+project(':react-native-device-info').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-device-info/android')
 include ':react-native-svg', ':androidcore-release', ':commons-compress-1.18', ':xz-1.8', ':JavaBitcoindRpcClient-1.0.0', ':lngrpc-1.0'
 project(':react-native-svg').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-svg/android')
 include ':react-native-gesture-handler', ':androidcrypto-release', ':lndmobilewrapper-release', ':Lndmobile'

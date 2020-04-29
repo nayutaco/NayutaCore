@@ -43,9 +43,12 @@ export function satsToBTC(sats) {
   return sats / 100000000;
 }
 
-export async function GetUserPreferences(key) {
+export async function GetUserPreferences(key, defaultValue) {
 
   let value = await DefaultPreference.get(key);
+  if(value == undefined){
+    return defaultValue;
+  }
   return value;
 
 }
@@ -61,7 +64,7 @@ export function GetLNDConf(network, backend, password) {
 
   var configString = "[Application Options]\n\n";
   configString += "maxbackoff=2s\n"
-  configString += "debuglevel=critical\n"
+  configString += "debuglevel=info\n"
 
   //configString += "sync-freelist=0\n"
   configString += "rpclisten=127.0.0.1:10009\n"
@@ -90,7 +93,7 @@ export function GetLNDConf(network, backend, password) {
   if (backend === "bitcoind") {
     configString += "\n[bitcoind]\n\n"
     configString += "bitcoind.rpchost=localhost\n";
-    configString += "bitcoind.rpcpass=password"+password+"\n";
+    configString += "bitcoind.rpcpass="+password+"\n";
     configString += "bitcoind.rpcuser=bitcoinrpc\n";
     configString += "bitcoind.zmqpubrawblock=tcp://127.0.0.1:28332\n"
     configString += "bitcoind.zmqpubrawtx=tcp://127.0.0.1:28333\n"

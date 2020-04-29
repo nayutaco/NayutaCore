@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import styles from './ConnectScreenStyles';
 import QRCode from 'react-native-qrcode-svg';
 import { Icon } from 'react-native-elements'
+import { GetUserPreferences } from '../../tools/utils';
 import {
   Image,
   NativeModules,
@@ -19,7 +20,7 @@ const lndMobileWrapperModule = NativeModules.LNDMobileWrapper;
 export default class ConnectScreen extends Component {
 
   state = {
-    network:"mainnet",
+    network:"",
     showWaitMessage: false,
     showQRCode: false,
     lndConnectURI: "",
@@ -30,6 +31,8 @@ export default class ConnectScreen extends Component {
 
   constructor(props) {
     super(props);
+
+
 
   }
 
@@ -44,8 +47,9 @@ export default class ConnectScreen extends Component {
     const {network } = this.state;
 
     var that = this;
-    
+    CustomLog("network is",network);
     lndMobileWrapperModule.getLNDConnectURI(network, (fromJavaCode) => {
+      CustomLog("got uri",fromJavaCode);
       let res = JSON.parse(fromJavaCode);
       CustomLog("getLNDConnectURI", res);
       that.setState({ lndConnectURI: res.uri, showQRCode: true });
@@ -59,13 +63,15 @@ export default class ConnectScreen extends Component {
 
   };
 
-  componentDidMount() {
+  async componentDidMount() {
+    const network = await GetUserPreferences("network","mainnet");
+    this.setState({network:network})
     this.load()
     this.props.navigation.addListener('willFocus', this.load)
 
   }
   load = () => {
-
+ 
     if (GetGlobalInfo().canShowConnectCode) {
       this.setState({ showWaitMessage: false });
       if(this.state.lndConnectURI.length == 0){

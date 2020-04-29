@@ -134,8 +134,8 @@ android {
         applicationId "com.nayutabox"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "0.1.0"
+        versionCode 3
+        versionName "0.1.2"
     }
     splits {
         abi {
@@ -185,6 +185,7 @@ android {
 }
 
 dependencies {
+    implementation project(':react-native-device-info')
     implementation fileTree(dir: "libs", include: ["*.jar",'*.aar'])
     implementation "com.facebook.react:react-native:+"  // From node_modules
     implementation 'com.google.code.gson:gson:2.8.6'

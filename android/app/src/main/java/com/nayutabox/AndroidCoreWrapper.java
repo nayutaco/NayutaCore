@@ -4,6 +4,8 @@ package com.nayutabox;
 
 import android.content.Context;
 import android.widget.Toast;
+
+import com.facebook.react.bridge.Promise;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
 import com.facebook.react.bridge.Callback;
 import com.facebook.react.bridge.WritableMap;
@@ -92,8 +94,42 @@ public class AndroidCoreWrapper extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
+  public void checkIfServiceIsRunning(String serviceName,final Promise promise) {
+
+    promise.resolve(com.mandelduck.androidcore.MainController.checkIfServiceIsRunning(serviceName));
+
+  }
+
+  @ReactMethod
+  public void cancelForeground() {
+
+    com.mandelduck.androidcore.MainController.cancelForeground();
+
+  }
+
+  @ReactMethod
+  public void cancelJob() {
+
+    com.mandelduck.androidcore.MainController.cancelJob();
+
+  }
+  @ReactMethod
+  public void stopCore() {
+
+    com.mandelduck.androidcore.MainController.stopCore();
+
+  }
+  @ReactMethod
+  public void registerBackgroundSync(boolean limited) {
+
+    com.mandelduck.androidcore.MainController.registerBackgroundSync(limited);
+
+  }
+
+
+  @ReactMethod
   public void startDownload() {
-    Log.d("event fired","sd");
+    Log.d("ABCORE","starting download");
     com.mandelduck.androidcore.MainController.startDownload();
 
   }

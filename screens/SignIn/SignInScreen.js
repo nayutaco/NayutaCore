@@ -20,22 +20,23 @@ export default class SignInScreen extends Component {
   state = {
     intro1Loaded: false,
     intro2Loaded: false,
-    intro3Loaded: false
+    intro3Loaded: false,
+    intro4Loaded: false
   }
 
-  UNSAFE_componentWillMount() {
+  async UNSAFE_componentWillMount() {
     this.animatedValueText = new Animated.Value(0)
     this.animatedValueText2 = new Animated.Value(0)
     this.animatedValueView = new Animated.Value(0)
-    this.animatedValueView2 = new Animated.Value(0)
-    this.animatedValueView3 = new Animated.Value(0)
+    this.animatedValueView2 = new Animated.Value(0) 
 
     this.animatedWelcomeView = new Animated.Value(0)
     this.animatedIntroView1 = new Animated.Value(0)
-    this.animatedIntroView2 = new Animated.Value(0)
-    this.animatedIntroView3 = new Animated.Value(0)
+    this.animatedIntroView2 = new Animated.Value(0) 
+    this.animatedIntroView3 = new Animated.Value(0) 
+    this.animatedIntroView4 = new Animated.Value(0) 
 
-
+    let that = this;
 
     setTimeout(function () {
       Animated.timing(that.animatedValueText, { toValue: 150, duration: 1500, useNativeDriver: true }).start()
@@ -57,32 +58,18 @@ export default class SignInScreen extends Component {
       Animated.timing(that.animatedValueView2, { toValue: 150, duration: 1500, useNativeDriver: true }).start()
 
     }, 8000);
-
-    setTimeout(function () {
-      Animated.timing(that.animatedValueView3, { toValue: 150, duration: 1500, useNativeDriver: true }).start()
-
-    }, 8000);
-
-    var that = this;
-
-    GetUserPreferences("skipIntroV1", function (result) {
-      if (result === "true") {
-        SetUserPreferences("skipIntroV1", "false", function () {
-          this.props.navigation.navigate('Tabs');
-         // that.props.navigation.navigate.goBack(null);
-
-        });
-
-
-      }
-
-    });
-
-
-
+ 
+ 
+    
+ 
+    const val = await GetUserPreferences("didShowIntro");
+ 
+    if(val === "TRUE"){
+      this.goToMainPage();
+    }
 
   }
-
+     
   static navigationOptions =
     {
       title: 'SecondActivity',
@@ -98,9 +85,7 @@ export default class SignInScreen extends Component {
     Animated.timing(this.animatedWelcomeView, { toValue: 100, duration: 1000, useNativeDriver: true }).start()
     let that = this;
     setTimeout(function () {
-
       Animated.timing(that.animatedIntroView1, { toValue: 100, duration: 1000, useNativeDriver: true }).start()
-
       that.setState({ intro1Loaded: true })
     }, 1000);
 
@@ -117,6 +102,7 @@ export default class SignInScreen extends Component {
 
   }
 
+
   goToIntro3() {
     Animated.timing(this.animatedIntroView2, { toValue: 0, duration: 1000, useNativeDriver: true }).start()
     let that = this;
@@ -127,9 +113,25 @@ export default class SignInScreen extends Component {
 
   }
 
-  goToMainPage() {
 
-    this.props.navigation.navigate('Tabs');
+
+  goToIntro4() {
+    Animated.timing(this.animatedIntroView3, { toValue: 0, duration: 1000, useNativeDriver: true }).start()
+    let that = this;
+    setTimeout(function () {
+      Animated.timing(that.animatedIntroView4, { toValue: 100, duration: 1000, useNativeDriver: true }).start()
+      that.setState({ intro4Loaded: true })
+    }, 1000);
+
+  }
+
+   
+
+  async goToMainPage() {
+    await SetUserPreferences("didShowIntro","TRUE");
+         
+       
+    this.props.navigation.navigate('Home');
 
   }
 
@@ -206,8 +208,20 @@ export default class SignInScreen extends Component {
     )
     const animatedIntroView3 = { opacity: interpolateIntroView3 }
 
+    const interpolateIntroView4 = this.animatedIntroView4.interpolate(
+      {
+        inputRange: [0, 100],
+        outputRange: [0, 1]
+      }
+    )
+    const animatedIntroView4 = { opacity: interpolateIntroView4 }
 
-    const { intro1Loaded, intro2Loaded, intro3Loaded } = this.state;
+     
+
+     
+
+
+    const { intro1Loaded, intro2Loaded, intro3Loaded, intro4Loaded} = this.state;
 
     return (
 
@@ -241,33 +255,34 @@ export default class SignInScreen extends Component {
         </Animated.View>
 
 
+        
         {intro1Loaded &&
+
           <Animated.View style={[styles.intro1Container, animatedIntroView1]}>
-            <Text style={[styles.introTitle]}>What is the box?</Text>
 
+            <Text style={[styles.introTitle]}>Why fullnode?</Text>
             <View style={styles.centerContainer}>
-
-              <View style={styles.introItem}>
-                <Image source={require('../../assets/images/nodeIcon.png')}
-                  style={styles.introItemImage} />
-                <Text style={[styles.introItemText]}>Full Bitcoin and Lightning node that verifies the complete blockchain</Text>
-              </View>
-
-              <View style={styles.introItem}>
-                <Image source={require('../../assets/images/connectIcon.png')}
-                  style={styles.introItemImage} />
-                <Text style={[styles.introItemText]}>Connects directly to the bitcoin and lightning network</Text>
-              </View>
 
               <View style={styles.introItem}>
                 <Image source={require('../../assets/images/privacyIcon.png')}
                   style={styles.introItemImage} />
-                <Text style={[styles.introItemText]}>Preservers privacy and does not rely on 3rd party services</Text>
+                <Text style={[styles.introItemText]}>Improve privacy </Text>
+              </View>
+
+              <View style={styles.introItem}>
+                <Image source={require('../../assets/images/nodeIcon.png')}
+                  style={styles.introItemImage} />
+                <Text style={[styles.introItemText]}>Full Bitcoin and Lightning experience</Text>
+              </View>
+
+              <View style={styles.introItem}>
+                <Image source={require('../../assets/images/decentralizedIcon.png')}
+                  style={styles.introItemImage} />
+                <Text style={[styles.introItemText]}>Keep Bitcoin decentralized</Text>
               </View>
 
 
             </View>
-
             <View style={[styles.buttonsContainer]}>
 
               <TouchableOpacity style={[styles.simpleButton]} onPress={this.goToIntro2.bind(this)}>
@@ -283,25 +298,25 @@ export default class SignInScreen extends Component {
 
           <Animated.View style={[styles.intro1Container, animatedIntroView2]}>
 
-            <Text style={[styles.introTitle]}>How do I use it?</Text>
+            <Text style={[styles.introTitle]}>What NayutaCore does?</Text>
             <View style={styles.centerContainer}>
 
               <View style={styles.introItem}>
-                <Image source={require('../../assets/images/powerIcon.png')}
+                <Image source={require('../../assets/images/ninjaIcon.png')}
                   style={styles.introItemImage} />
-                <Text style={[styles.introItemText]}>Plug in to your power socket</Text>
+                <Text style={[styles.introItemText]}>Fullnode for everyone. No coding required</Text>
               </View>
 
               <View style={styles.introItem}>
-                <Image source={require('../../assets/images/wifiIcon.png')}
+                <Image source={require('../../assets/images/syncIcon.png')}
                   style={styles.introItemImage} />
-                <Text style={[styles.introItemText]}>Connect to your wifi connect</Text>
+                <Text style={[styles.introItemText]}>Run your own node 24/7</Text>
               </View>
 
               <View style={styles.introItem}>
-                <Image source={require('../../assets/images/awakeIcon.png')}
+                <Image source={require('../../assets/images/appLinkIcon.png')}
                   style={styles.introItemImage} />
-                <Text style={[styles.introItemText]}>Disable auto sleep in the app settings</Text>
+                <Text style={[styles.introItemText]}>Connect to other wallets and services</Text>
               </View>
 
 
@@ -309,7 +324,7 @@ export default class SignInScreen extends Component {
             <View style={[styles.buttonsContainer]}>
 
               <TouchableOpacity style={[styles.simpleButton]} onPress={this.goToIntro3.bind(this)}>
-                <Text style={styles.simpleButtonText}>continue</Text>
+                <Text style={styles.simpleButtonText}>next</Text>
               </TouchableOpacity>
 
             </View>
@@ -317,44 +332,73 @@ export default class SignInScreen extends Component {
 
           </Animated.View>
         }
-        {intro3Loaded &&
 
-          <Animated.View style={[styles.intro1Container, animatedIntroView3]}>
+{intro3Loaded &&
 
-            <Text style={[styles.introTitle]}>Let's get started</Text>
-            <View style={styles.centerContainer}>
+<Animated.View style={[styles.intro1Container, animatedIntroView3]}>
 
-              <View style={styles.introItem}>
-                <Image source={require('../../assets/images/infoIcon.png')}
-                  style={styles.introItemImage} />
-                <Text style={[styles.introItemText]}>Visit the settings tab to find in-depth instructions on how to keep your device always on</Text>
-              </View>
+  <Text style={[styles.introTitle]}>How to get started</Text>
+   
+  
+  <View style={styles.centerContainerLess}>
+  <Text style={styles.infoTextTop}>
+  We recommend preparing a dedicated Android device for the best intended experience. Dig up your old Android phone!
+  </Text>
+    <View style={styles.introItem}>
+      <Image source={require('../../assets/images/wifiIcon.png')}
+        style={styles.introItemImage} />
+      <Text style={[styles.introItemText]}>Connect to WIFI</Text>
+    </View>
 
-              <View style={styles.introItem}>
-                <Image source={require('../../assets/images/syncIcon.png')}
-                  style={styles.introItemImage} />
-                <Text style={[styles.introItemText]}>Next the app will start your lightning wallet and perform an initial sync</Text>
-              </View>
+    <View style={styles.introItem}>
+      <Image source={require('../../assets/images/awakeIcon.png')}
+        style={styles.introItemImage} />
+      <Text style={[styles.introItemText]}>Adjust Screentime</Text>
+    </View>
 
-              <View style={styles.introItem}>
-                <Image source={require('../../assets/images/appLinkIcon.png')}
-                  style={styles.introItemImage} />
-                <Text style={[styles.introItemText]}>Once initial sync has completed you can link to this node using various 3rd party apps</Text>
-              </View>
-
-
-            </View>
-            <View style={[styles.buttonsContainer]}>
-
-              <TouchableOpacity style={[styles.simpleButton]} onPress={this.goToMainPage.bind(this)}>
-                <Text style={styles.simpleButtonText}>begin</Text>
-              </TouchableOpacity>
-
-            </View>
+    <View style={styles.introItem}>
+      <Image source={require('../../assets/images/powerIcon.png')}
+        style={styles.introItemImage} />
+      <Text style={[styles.introItemText]}>Plug in</Text>
+    </View>
 
 
-          </Animated.View>
-        }
+  </View>
+  <View style={[styles.buttonsContainer]}>
+
+    <TouchableOpacity style={[styles.simpleButton]} onPress={this.goToIntro4.bind(this)}>
+      <Text style={styles.simpleButtonText}>continue</Text>
+    </TouchableOpacity>
+
+  </View>
+
+
+</Animated.View>
+}
+
+{intro4Loaded &&
+
+<Animated.View style={[styles.intro1Container, animatedIntroView4]}>
+
+  <Text style={[styles.introTitle]}></Text>
+  <View style={styles.centerContainer}>
+  <Text style={styles.infoText}>
+  The initial blockchain sync typically takes 4 to 5 days.
+
+  Once complete, you'll be able to connect your node to other services and start enjoying the benefits of running a full node.
+  </Text>
+  </View>
+  <View style={[styles.buttonsContainer]}>
+
+    <TouchableOpacity style={[styles.simpleButton]} onPress={this.goToMainPage.bind(this)}>
+      <Text style={styles.simpleButtonText}>Welcome and let's get started! </Text>
+    </TouchableOpacity>
+
+  </View>
+
+
+</Animated.View>
+}
 
 
 

@@ -34,6 +34,21 @@ export default StyleSheet.create({
     fontFamily: AppStyles.color.appFont,
     fontSize: 20,
   },
+  infoText: {
+    color: AppStyles.color.appBlack,
+    textAlign: 'center',
+    fontFamily: AppStyles.color.appFont,
+    fontSize: 18,
+    width: Dimensions.get('window').width - 35,
+  },
+  infoTextTop: {
+    marginTop:30,
+    color: AppStyles.color.appBlack,
+    textAlign: 'center',
+    fontFamily: AppStyles.color.appFont,
+    fontSize: 18,  
+    width: Dimensions.get('window').width - 35,
+  },
   subTitle: {
     color: AppStyles.color.appBlack,
     textAlign: 'center',
@@ -83,6 +98,10 @@ export default StyleSheet.create({
   },
   centerContainer: {
     paddingTop: 100,
+    alignItems: 'center',
+  },
+  centerContainerLess: {
+    paddingTop: 50,
     alignItems: 'center',
   },
   welcomeImage: {

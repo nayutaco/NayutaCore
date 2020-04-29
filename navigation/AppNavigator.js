@@ -4,6 +4,12 @@ import { createStackNavigator } from 'react-navigation-stack';
 
 import MainTabNavigator from './MainTabNavigator'; 
 import SignInScreen from '../screens/SignIn/SignInScreen';
+
+
+import SettingsScreen from '../screens/Settings/SettingsScreen';
+
+import ConnectScreen from '../screens/Connect/ConnectScreen';
+import HomeScreen from '../screens/Home/HomeScreen';
 import InstructionsScreen from '../screens/Instructions/InstructionsScreen';
 
 
@@ -17,8 +23,20 @@ const AppNavigator = createStackNavigator({
       headerShown: false,
     },
   },
-  Tabs: {
-    screen: MainTabNavigator,
+  Home: {
+    screen: HomeScreen,
+    navigationOptions: {
+      headerShown: false,
+    },
+  },
+  Settings: {
+    screen: SettingsScreen,
+    navigationOptions: {
+      headerShown: false,
+    },
+  },
+  Connect: {
+    screen: ConnectScreen,
     navigationOptions: {
       headerShown: false,
     },

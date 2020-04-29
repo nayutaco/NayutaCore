@@ -1,9 +1,8 @@
 import { StyleSheet, Dimensions } from 'react-native'
 import AppStyles from '../../AppStyles';
 
-const { height } = Dimensions.get("window");
-
-const cardHeight = 250;
+const { height,width } = Dimensions.get("window");
+  
 export default StyleSheet.create({
   outer: {
     position: "relative",
@@ -66,28 +65,22 @@ width:'100%'
   },
   spinner: {
     color: AppStyles.color.appBlack
-  },
-  cardsView:{
-    marginTop:40,
-    marginLeft:10,
-    marginRight:10
-  },
-  container: {
-    height: '100%',
+  },  
+  container: { 
     width: '100%'
   },
-  topStatus: {
-    marginLeft: 10,
-    textAlign:'right'
+  settingsIcon: {
+    marginTop:10,
+    paddingRight:10,
+    position:'absolute',
+    alignSelf: 'flex-end', 
+    flexDirection: 'row', 
+    width:40,
+    height:40
   },
   content: {
     height: height * 20
-  },
-  card: {
-    height: cardHeight,
-    borderRadius: 10,
-    elevation: 15
-  },
+  }, 
   seperator: {
     marginTop: 10,
     width: '90%',
@@ -114,39 +107,7 @@ width:'100%'
     textAlign: 'left',
     fontFamily: 'sans-serif-light',
     fontSize: 20,
-  },
-  cardAmountFiat: {
-    color: 'white',
-    paddingLeft: 5,
-    textAlign: 'left',
-    fontFamily: 'sans-serif-light',
-    fontSize: 40,
-  },
-  cardAmount: {
-    color: 'white',
-    paddingLeft: 5,
-    textAlign: 'left',
-    fontFamily: 'sans-serif-light',
-    fontSize: 40,
-  },
-  cardTitle: {
-
-    color: 'white',
-    paddingLeft: 15,
-    paddingTop: 12,
-    textAlign: 'left',
-    fontFamily: 'sans-serif-light',
-    fontSize: 20,
-  },
-  chartTitle: {
-
-    color: 'white',
-    paddingLeft: 15,
-    paddingTop: 12,
-    textAlign: 'left',
-    fontFamily: 'sans-serif-light',
-    fontSize: 20,
-  },
+  }, 
   nodeStatusText: {
     textAlign: 'right',
     alignSelf: 'flex-end',
@@ -156,18 +117,9 @@ width:'100%'
     marginTop: 10,
 
   },
-  roundedButton: {
-    height: 40,
-    width: '30%',
-    marginRight: 10,
-    marginLeft: 10,
-    borderRadius: 30,
-    borderWidth: 1,
-    borderColor: '#fff',
-    justifyContent: 'center',
-    backgroundColor: AppStyles.color.appBlack,
+  topButtons:{  
+    flexDirection:'row',  
   },
-
 
   roundedButtonText: {
     color: 'white',
@@ -176,22 +128,75 @@ width:'100%'
     fontSize: 17,
   },
 
-  statusText: {
-    marginTop: 30,
-    color: 'rgba(0,0,0,0.4)',
+ 
+  topView:{
+   marginTop:10,
+    width:"100%",
+    height:width*0.4,
+     flexDirection: 'row'
+  },
+  detailsView:{
+    paddingLeft:3,
+   // backgroundColor:"blue",
+    width:"60%", 
+    height:"100%",
+    justifyContent:'center',
+  },
+  progressView: { 
+    //backgroundColor:"green",
+    width:"42%",  
+    
+    height:"100%" ,
+    justifyContent:'center',
+    alignItems:'center'
+  },
+  circularProgressView: {  
+  },
+
+  roundedButton: {
+    marginTop:20,
+    marginRight:10,
+    alignSelf: 'flex-start',
+    height: 35,
+    width: 90,
+    borderRadius: 17.5,
+    borderWidth: 1,
+    borderColor: '#fff',
+    justifyContent: 'center',
+    backgroundColor: AppStyles.color.appBlack,
+  },
+ 
+  simpleButtonText: {
+    color: 'white',
     textAlign: 'center',
     fontFamily: AppStyles.color.appFont,
-    fontSize: 17,
+    fontSize: 15,
   },
 
-  topView: {
-    flex: 1,
-    top: 100,
-    width: Dimensions.get('window').width - 10,
+
+  percentageText:{   
+    width:"100%",
+    position:'absolute', 
+    color: 'rgba(0,0,0,0.8)',
     textAlign: 'center',
-    alignItems: 'center',
+    fontFamily: AppStyles.color.appFont,
+    fontSize: 37,
   },
-
+  statusText1: { 
+    paddingRight:10,
+    color: 'rgba(0,0,0,0.7)',
+    textAlign: 'left',
+    fontFamily: AppStyles.color.appFont,
+    fontSize: 30,
+  }, 
+  statusText2: {
+    marginTop:20,
+    paddingRight:30,
+    color: 'rgba(0,0,0,0.4)',
+    textAlign: 'left',
+    fontFamily: AppStyles.color.appFont,
+    fontSize: 20,
+  },  
 
   buttonsContainer: {
     marginTop: 30,
@@ -200,22 +205,18 @@ width:'100%'
     justifyContent: 'center',
     width: '100%',
   },
-
+timelineView:{   
+  marginTop: 20,
+  width: '100%', 
+  height:height - (width*0.6),
+  paddingBottom:20,
+  
+},
   innerView: {
     height: Dimensions.get('window').height,
-    width: Dimensions.get('window').width,
-    alignItems: 'center',
+    width: Dimensions.get('window').width, 
   },
 
-
-
-  progressView: {
-    position: "absolute",
-    marginTop: Dimensions.get('window').height * 0.2,
-    textAlign: "center",
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   progressTextLarge: {
     fontFamily: AppStyles.color.appFont,
     fontSize: 80,

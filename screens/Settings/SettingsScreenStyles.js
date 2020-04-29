@@ -5,7 +5,7 @@ export default StyleSheet.create({
         backgroundColor: 'rgba(231,234,239,1)',
         height: '100%',
     },
-    menuItemInner: {  
+    menuItemInner: {
     },
     menuItem: {
         backgroundColor: 'white',
@@ -18,7 +18,12 @@ export default StyleSheet.create({
         borderWidth: 1,
         justifyContent: 'center',
     },
-    menuText: { 
+    versionText: {
+        marginTop: 20,
+        textAlign: 'center',
+        color: 'rgba(0,0,0,0.5)',
+    },
+    menuText: {
         paddingLeft: 10,
         height: 60,
         width: '50%',
@@ -26,9 +31,9 @@ export default StyleSheet.create({
         lineHeight: 17,
         fontSize: 17
     },
-    iconView: { 
-        alignSelf: 'flex-end',  
-        position:'absolute'
-        
+    iconView: {
+        alignSelf: 'flex-end',
+        position: 'absolute'
+
     },
 });
