@@ -4,6 +4,22 @@ import AppStyles from '../../AppStyles';
 const { height,width } = Dimensions.get("window");
   
 export default StyleSheet.create({
+  blockCell:{
+    width:"100%", 
+    flex:1,
+    height:200, 
+    justifyContent: 'center',
+    alignItems: 'center', 
+  },
+  blockCellInner:{
+    width:width - 20,
+    height:180,    
+    backgroundColor:"gray", 
+  },
+  blockTitle:{
+    marginTop:5,
+    marginLeft:10,
+  },
   outer: {
     position: "relative",
     justifyContent: "center",

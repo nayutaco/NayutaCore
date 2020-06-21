@@ -84,7 +84,7 @@ public class AndroidCoreWrapper extends ReactContextBaseJavaModule {
 
   @ReactMethod
   public void localNotification(String title,String content){
-
+/*
     Intent intent = new Intent(reactContext, NotificationPub.class);
     intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
     PendingIntent pendingIntent = PendingIntent.getActivity(reactContext, 0, intent, PendingIntent.FLAG_ONE_SHOT);
@@ -121,7 +121,7 @@ public class AndroidCoreWrapper extends ReactContextBaseJavaModule {
     }
     mNotificationManager.notify(0, notificationBuilder.build());
 
-
+*/
 
   }
 
@@ -204,7 +204,12 @@ public class AndroidCoreWrapper extends ReactContextBaseJavaModule {
     com.mandelduck.androidcore.MainController.getBlockchainInfo();
 
   }
+  @ReactMethod
+  public void getBlockStats(int height) {
+    Log.i("TAG","getting height "+height);
+    com.mandelduck.androidcore.MainController.getBlockStats(height);
 
+  }
   @ReactMethod
   public void stopTorHiddenService() {
     com.mandelduck.androidcore.MainController.stopTorHiddenService();

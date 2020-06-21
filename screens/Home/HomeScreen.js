@@ -20,6 +20,7 @@ import {
   View,
   Animated,
   SafeAreaView,
+  FlatList,
   Alert
 } from 'react-native';
 
@@ -34,7 +35,24 @@ const timelineProviderImage = require('../../assets/images/99Bitcoins.png');
 
 const lndMobileWrapperModule = NativeModules.LNDMobileWrapper;
 const androidCoreWrapperModule = NativeModules.AndroidCoreWrapper;
+ 
 
+
+function Item({ block }) {
+  return (
+    <View style={styles.blockCell}>
+      <View style={styles.blockCellInner}> 
+      <Text style={styles.blockTitle}>block: {block.height}</Text>
+      <Text style={styles.blockTitle}>time: {block.time}</Text>
+      <Text style={styles.blockTitle}>txs: {block.txs}</Text>
+      <Text style={styles.blockTitle}>volume: {  block.total_out / 100000000} BTC</Text>
+    
+      <Text style={styles.blockTitle}>size: {block.total_size / 1000} kb</Text>
+       
+      </View>
+    </View>
+  );
+}
 class HomeScreen extends Component {
   isShowingBlock = false;
   lastBitcoinGetInfo = null;
@@ -46,9 +64,12 @@ class HomeScreen extends Component {
   didStartBitcoind = false;
   didStartRestart = false;
   state = {
+    syncBlocksData:[],
+    currentBitcoinDBlock:0,
+    showClock:false,
     alwaysNeutrinoBackend:false,
     showTimeLine:true,
-    showClock:false,
+    showFullSync:false,
     currentBlockHash:"",
     maxMemory:0,
     stoppedAll:false,
@@ -85,14 +106,25 @@ class HomeScreen extends Component {
     syncProgress: 0,
     headers: 0,
     showProgress: true,
-    progressSize: Dimensions.get('window').width * 0.38
+    progressSize: Dimensions.get('window').width * 0.38,
+    recentBlocks:[]
   }
   constructor(props) {
     super(props);
+
+     
+   
     
   }
 
+  formatTime(timestamp){ 
+    var date = new Date(timestamp ); 
 
+    var monthArray = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
+
+    return date.getDate()+ " " +monthArray[date.getMonth()]+" " +date.getFullYear();
+   }
+  
   bytesToHex(bytes) {
     for (var hex = [], i = 0; i < bytes.length; i++) {
       var current = bytes[i] < 0 ? bytes[i] + 256 : bytes[i];
@@ -185,6 +217,8 @@ this.isShowingBlock = false;
 
   }
   async componentDidMount() {
+    this.setState({showTimeLine:false,showFullSync:true})
+
     
   
  /*
@@ -534,7 +568,7 @@ if(rawDate == undefined){
   }
   async loadBitcoinServices() {
 
-    const {  stoppedAll, hiddenServiceStarting, backend,didStartLND, alwaysNeutrinoBackend} = this.state;
+    const { syncBlocksData, stoppedAll, hiddenServiceStarting, backend,didStartLND, alwaysNeutrinoBackend} = this.state;
     var that = this;
     that.didStartBitcoind = true;
     const eventEmitter = new NativeEventEmitter(NativeModules.ToastExample);
@@ -624,6 +658,8 @@ if(rawDate == undefined){
           }
           else if (jsonData.response == "rpc") {
 
+            if(jsonData.command == "getblockchaininfo"){
+
             if (that.state.hiddenServiceStarting == false) {
 
               that.setState({ hiddenServiceStarting: true });
@@ -663,6 +699,8 @@ if(rawDate == undefined){
 
 
             } else {
+              
+              that.setState({ currentBitcoinDBlock :response.blocks});
 
               var res = this.formatSyncData(
                 parseFloat(response.verificationprogress + "") * 100,
@@ -716,6 +754,23 @@ if(rawDate == undefined){
               }
             }
 
+          }else if(jsonData.command == "getblockstats"){
+
+            var obj = JSON.parse(jsonData.res);
+            
+            if( that.containsBlock(syncBlocksData,obj) == false){
+
+              obj.time = that.formatTime(obj.time);
+            syncBlocksData.unshift(obj);
+
+            if(syncBlocksData.length > 10){
+              syncBlocksData.pop();
+            }
+            that.setState({  syncBlocksData:  syncBlocksData });
+          }
+              console.log(jsonData.command,obj.txs);
+          }
+
           }
         }
       } catch (e) {
@@ -737,6 +792,16 @@ if(rawDate == undefined){
       }
     })
 
+  }
+
+  containsBlock(array,obj){
+    for(var i = 0;i<array.length;i++){
+      var arr = array[i];
+      if(arr.blockhash === obj.blockhash){
+        return true;
+      }
+    }
+    return false;
   }
   async startBitcoinD() {
     this.setState({ bitcoinDTorDownloaded: true, bitcoinDStarted: true, statusText2: "starting bitcoind..." });
@@ -900,13 +965,16 @@ if(rawDate == undefined){
   }
 
   getBlockchainInfo() {
-    const { stoppedAll } = this.state;
+    const { stoppedAll,currentBitcoinDBlock } = this.state;
 
     if( stoppedAll ){
       return;
     }
     CustomLog("get blockchain info");
     androidCoreWrapperModule.getBlockchainInfo();
+      if(currentBitcoinDBlock > 0){
+    androidCoreWrapperModule.getBlockStats(currentBitcoinDBlock); 
+      }
   }
 
   continueLoad() {
@@ -1208,7 +1276,7 @@ if(rawDate == undefined){
   }
 
   render() {
-    const {showTimeLine,showClock, currentBlockHash, timelineProviderImage,showStop, didSetConnect, activeData, percentage, syncProgress, progressSize, statusText1, statusText2, onionImage, lightningImage, bitcoindImage, } = this.state;
+    const {syncBlocksData,showTimeLine,showFullSync, showClock,currentBlockHash, timelineProviderImage,showStop, didSetConnect, activeData, percentage, syncProgress, progressSize, statusText1, statusText2, onionImage, lightningImage, bitcoindImage, } = this.state;
     return (
       <SafeAreaView style={styles.root}>
 
@@ -1288,6 +1356,13 @@ if(rawDate == undefined){
             </View>
             {showClock &&
             <BitsAnimation style={styles.bitsAnimation} hash={currentBlockHash}/>
+  }
+   {showFullSync &&
+           <FlatList
+           data={syncBlocksData}
+           renderItem={({ item }) => <Item block={item} />}
+           keyExtractor={item => item.blockhash}
+         />
   }
 
             {showTimeLine &&
