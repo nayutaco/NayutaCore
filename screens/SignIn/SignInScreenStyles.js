@@ -40,6 +40,7 @@ export default StyleSheet.create({
     fontFamily: AppStyles.color.appFont,
     fontSize: 18,
     width: Dimensions.get('window').width - 35,
+    marginBottom:60
   },
   infoTextTop: {
     marginTop:30,
@@ -137,6 +138,12 @@ export default StyleSheet.create({
     textAlign: 'center',
     fontFamily: AppStyles.color.appFont,
     fontSize: 25,
+  },
+  simpleButtonTextSmall: {
+    color: AppStyles.color.appBlack,
+    textAlign: 'center',
+    fontFamily: AppStyles.color.appFont,
+    fontSize: 20,
   },
 
 

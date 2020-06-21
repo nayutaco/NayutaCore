@@ -3,6 +3,8 @@ import styles from './ConnectScreenStyles';
 import QRCode from 'react-native-qrcode-svg';
 import { Icon } from 'react-native-elements'
 import { GetUserPreferences } from '../../tools/utils';
+import SegmentedControl from '@react-native-community/segmented-control';
+
 import {
   Image,
   NativeModules,
@@ -20,10 +22,15 @@ const lndMobileWrapperModule = NativeModules.LNDMobileWrapper;
 export default class ConnectScreen extends Component {
 
   state = {
+    lndConnectURI:"",
+    selectedIndex:0,
     network:"",
     showWaitMessage: false,
-    showQRCode: false,
-    lndConnectURI: "",
+    showQRCodeView: false, 
+    showQRCode: false, 
+    remoteRESTConnectURI:" ",
+    localRESTConnectURI:" ",
+    localGRPCConnectURI:" ",
     qrCodeSize: Dimensions.get('window').width * 0.8,
     showInstructions: true
 
@@ -35,8 +42,7 @@ export default class ConnectScreen extends Component {
 
 
   }
-
-
+ 
   hideInstructions = async () => {
     this.setState({ showInstructions: false })
   }
@@ -52,11 +58,62 @@ export default class ConnectScreen extends Component {
       CustomLog("got uri",fromJavaCode);
       let res = JSON.parse(fromJavaCode);
       CustomLog("getLNDConnectURI", res);
-      that.setState({ lndConnectURI: res.uri, showQRCode: true });
+
+      let remoteRESTConnectURI = res.uri;
+ 
+      var localConnectURIParts = remoteRESTConnectURI.split("?");
+
+      var cert = localConnectURIParts[1];
+      cert =cert.replace("==","");
+      cert = cert.replace(/\+/g,"-");
+      cert = cert.replace(/\//g,"_");
+
+      var localGRPCConnectURI = "lndconnect://127.0.0.1:10009?"+cert;
+     
+ 
+      var localRESTConnectURI = "lndconnect://127.0.0.1:8080?"+cert;
+    
+       
+      that.setState({remoteRESTConnectURI:remoteRESTConnectURI, localRESTConnectURI:localRESTConnectURI, localGRPCConnectURI:localGRPCConnectURI});
 
 
     })
   }
+
+  showQRCodeView(type){
+
+    const {remoteRESTConnectURI,localRESTConnectURI, localGRPCConnectURI} = this.state;
+    CustomLog("type is",type);
+   
+    if(type == "rest-local"){
+      CustomLog("rest local",localRESTConnectURI);
+      this.setState({ lndConnectURI: localRESTConnectURI, showQRCodeView:true});
+    }
+    else if(type == "grpc-local"){ 
+      CustomLog("grpc local",localGRPCConnectURI);
+      this.setState({ lndConnectURI:localGRPCConnectURI, showQRCodeView:true});
+    } 
+    else if(type == "rest-remote"){ 
+      CustomLog("rest remote",remoteRESTConnectURI);
+      this.setState({ lndConnectURI:remoteRESTConnectURI, showQRCodeView:true});
+    }
+    let that = this;
+    setTimeout(function(){
+      that.setState({showQRCode:true});
+    },100);
+
+
+  }
+
+
+  closeQRCodeView(){
+
+    
+      this.setState({ showQRCode:false, showQRCodeView:false});
+   
+
+  }
+  
   writeToClipboard = async () => {
     await Clipboard.setString(this.state.lndConnectURI);
     alert('Copied to Clipboard');
@@ -87,7 +144,7 @@ export default class ConnectScreen extends Component {
 
   render() { 
     let logoFromFile = require('../../assets/images/nayutaLogo.png');
-    const { showInstructions, lndConnectURI, qrCodeSize, showWaitMessage, showQRCode } = this.state;
+    const { showInstructions, lndConnectURI, qrCodeSize, showWaitMessage, showQRCodeView, showQRCode } = this.state;
 
     return (
       <View >
@@ -96,21 +153,43 @@ export default class ConnectScreen extends Component {
           {!showWaitMessage &&
             <View style={[styles.innerView]}>
 
-              <View style={[styles.qrCodeInstructionsTop]} >
+              <View style={[styles.localConnect]} >
 
-                <Image style={[styles.instructionsIcon]} source={require('../../assets/images/linkIcon.png')} />
-                <Text style={[styles.instructionsSubtitle]}>remotely connect to your full node</Text>
+              
+                <Text style={[styles.title]}>Local Connect</Text>
+              <Text style={[styles.subTitle]}>connect 3rd party apps running on the same device</Text>
+              <View style={[styles.iconsView]}>
+              <TouchableOpacity onPress={() => this.showQRCodeView("rest-local")}>
+              <Image style={[styles.appIcon]} source={require('../../assets/images/zeusIcon.png')} />
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => this.showQRCodeView("grpc-local")}>
+              <Image style={[styles.appIcon]} source={require('../../assets/images/zap-icon-128.png')} />
+              </TouchableOpacity>
+              </View>
+
+              <Text style={[styles.title]}>Remote Connect</Text>
+              <Text style={[styles.subTitle]}>connect 3rd party apps running on another device</Text>
+              <View style={[styles.iconsView]}>
+              <TouchableOpacity onPress={() => this.showQRCodeView("rest-remote")}>
+              <Image style={[styles.appIcon]} source={require('../../assets/images/zeusIcon.png')} /> 
+              </TouchableOpacity>
+              </View>
+
               </View>
 
 
-              <View style={[styles.qrCodeView]}>
-                <TouchableOpacity onPress={this.writeToClipboard}>
-                  {!showQRCode && !showWaitMessage &&
-
+             {showQRCodeView &&
+             
+             <View style={[styles.qrCodeView]}>
+                
+                
+                {!showQRCode &&
                     <ActivityIndicator size='large' style={[styles.spinner]} />
-                  }
+                }
 
-                  {showQRCode &&
+{showQRCode &&
+<View>
+  <TouchableOpacity onPress={this.writeToClipboard}>
                     <QRCode style={[styles.qrCode]}
                       size={qrCodeSize}
                       value={lndConnectURI}
@@ -119,17 +198,33 @@ export default class ConnectScreen extends Component {
                       logoBackgroundColor='transparent'
                       onPress={this.writeToClipboard}
                     />
-                  }
+                 
 
                 </TouchableOpacity>
+  
 
                 <View>
-                  <View style={[styles.qrCodeInstructions]} ><Text style={[styles.subtitle]}>scan with your Zeus wallet</Text>
-                    <Image style={[styles.walletIcon]} source={require('../../assets/images/zeusIcon.png')} /></View>
-                </View>
+               
+                <View style={[styles.qrCodeInstructions]} >
+                  <Text style={[styles.subtitle]}>tap to copy</Text>
+                 
+                  </View> 
+                  <View style={[styles.qrCodeInstructions]} >
+
+                  <TouchableOpacity style={[styles.roundedButton]} onPress={this.closeQRCodeView.bind(this)}>
+                      <Text style={styles.simpleButtonText}>close</Text>
+                    </TouchableOpacity>
+                    </View> 
 
 
-              </View>
+                
+
+                   
+  </View>
+  </View>}
+
+
+              </View>}
 
             </View>
           }
@@ -147,13 +242,13 @@ export default class ConnectScreen extends Component {
             <View style={[styles.explainInnerView]}>
               <Text style={[styles.explainItemTitle]}>Connect to your node</Text>
               <View style={[styles.explainItemSeperator]}></View>
-              <Text style={[styles.explainItemText]}>You can scan the qrcode or tap to copy the config URI shown on this page inorder to connect this node to 3rd part apps such as Zeus Wallet</Text>
+              <Text style={[styles.explainItemText]}>Select which app you want to connect to and either copy and past the config into that app or scan the qrcode</Text>
 
 
               <View style={[styles.explainItemButton]}>
                 <TouchableOpacity onPress={this.hideInstructions}>
 
-                  <Text style={[styles.explainItemButtonText]}>ok </Text>
+                  <Text style={[styles.explainItemButtonText]}>ok</Text>
                 </TouchableOpacity>
 
               </View>

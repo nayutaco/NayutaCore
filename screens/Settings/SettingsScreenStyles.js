@@ -26,7 +26,7 @@ export default StyleSheet.create({
     menuText: {
         paddingLeft: 10,
         height: 60,
-        width: '50%',
+        width: '70%',
         height: 17,
         lineHeight: 17,
         fontSize: 17

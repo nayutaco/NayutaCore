@@ -1,8 +1,8 @@
 package com.nayutabox;
-
+import android.net.Uri;
+import android.content.Intent;
 import android.content.Context;
 import android.util.Base64;
-
 import com.android.volley.AuthFailureError;
 import com.android.volley.Cache;
 import com.android.volley.DefaultRetryPolicy;
@@ -26,6 +26,7 @@ import com.google.protobuf.ByteString;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
 import java.nio.file.Files;
@@ -47,10 +48,13 @@ import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.HashMap;
 
 import android.util.Log;
+
+import androidx.core.content.FileProvider;
 
 import com.jakewharton.processphoenix.ProcessPhoenix;
 
@@ -171,6 +175,32 @@ public class LNDMobileWrapper extends ReactContextBaseJavaModule {
         return ret;
     }
 
+    private static String bytesToBase64String(byte[] fileData){
+        return android.util.Base64.encodeToString(fileData, Base64.DEFAULT);
+    }
+
+    private static byte[] stringToBase64Bytes(String str){
+        return android.util.Base64.decode(str, Base64.DEFAULT);
+    }
+    public static String  encodeFileToBase64( File file ) {
+        String base64File = "";
+
+
+
+        try (FileInputStream imageInFile = new FileInputStream(file)) {
+            // Reading a file from file system
+            byte fileData[] = new byte[(int) file.length()];
+            imageInFile.read(fileData);
+            base64File = bytesToBase64String(fileData);
+
+        } catch (FileNotFoundException e) {
+            System.out.println("File not found" + e);
+        } catch (IOException ioe) {
+            System.out.println("Exception while reading the file " + ioe);
+        }
+        return base64File;
+    }
+/*
     private static String encodeFileToBase64(File file) {
         try {
             byte[] fileContent = Files.readAllBytes(file.toPath());
@@ -178,7 +208,7 @@ public class LNDMobileWrapper extends ReactContextBaseJavaModule {
         } catch (IOException e) {
             throw new IllegalStateException("could not read file " + file, e);
         }
-    }
+    }*/
 
     public SSLSocketFactory getSocketFactory(Context context)
             throws CertificateException, IOException, KeyStoreException, NoSuchAlgorithmException, KeyManagementException {
@@ -263,22 +293,38 @@ public class LNDMobileWrapper extends ReactContextBaseJavaModule {
 
     @ReactMethod
     public void readMacaroon(String network, com.facebook.react.bridge.Callback callback) {
-
-
-        _macaroon = getMacaroon(network, "hex");
         JSONObject json = new JSONObject();
-
         try {
-            json.put("macaroon", _macaroon);
 
 
-            callback.invoke(json.toString());
+            _macaroon = getMacaroon(network, "hex");
 
-        } catch (Exception e) {
+
+            try {
+                json.put("macaroon", _macaroon);
+
+
+                callback.invoke(json.toString());
+
+            } catch (Exception e) {
+
+                e.printStackTrace();
+            }
+        }catch(Exception e){
             e.printStackTrace();
+            try {
+                json.put("error", e.getLocalizedMessage());
+
+
+                callback.invoke(json.toString());
+
+            } catch (Exception e2) {
+
+                e.printStackTrace();
+            }
         }
     }
-
+/*
     @ReactMethod
     public void getLNDConnectURI(String network, com.facebook.react.bridge.Callback callback) {
 
@@ -327,7 +373,74 @@ public class LNDMobileWrapper extends ReactContextBaseJavaModule {
         }
 
 
+    }*/
+
+
+    @ReactMethod
+    public void getLNDConnectURI(String network, com.facebook.react.bridge.Callback callback) {
+
+
+        String macaroon = getMacaroon(network, "base64").replaceAll("\n", "").replaceAll("\r", "");
+
+        String path = reactContext.getFilesDir() + "/tls.cert";
+
+
+        try {
+
+
+
+            String contents = getStringFromFile(path);
+
+
+            contents = contents.replace("-----BEGIN CERTIFICATE-----", "").replace("-----END CERTIFICATE-----", "").replaceAll("\n", "").replaceAll("\r", "");
+            Log.i(TAG, "uri contents " + contents);
+
+
+
+
+
+            byte[] strBytes = android.util.Base64.decode(contents, Base64.DEFAULT);
+            byte[] encoded = android.util.Base64.encode(
+                    strBytes, Base64.URL_SAFE | Base64.NO_PADDING |  Base64.NO_WRAP);
+            String cert = new String(encoded);
+
+
+            Log.i(TAG, "cert contents " + cert);
+
+            Log.i(TAG, "macc " + macaroon);
+
+            path = reactContext.getNoBackupFilesDir() + "/tordata/hostname";
+
+
+            String onionAddress =  getStringFromFile(path);
+
+
+            onionAddress = onionAddress.replaceAll("\n", "").replaceAll("\r", "");
+            Log.i(TAG, "onions address " + onionAddress);
+            String uri = "lndconnect://" + onionAddress + ":8080?cert=" + cert + "&macaroon=" + macaroon;
+            Log.i(TAG, "uri is " + uri);
+
+
+            JSONObject json = new JSONObject();
+
+            try {
+                json.put("uri", uri);
+
+
+                callback.invoke(json.toString());
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+        } catch (Exception e) {
+
+
+        }
+
+
     }
+    /*
 
     String getMacaroon(String network, String format) {
 
@@ -335,7 +448,7 @@ public class LNDMobileWrapper extends ReactContextBaseJavaModule {
 
 
         File f = new File(path);
-        try {
+
             String macaroon = encodeFileToBase64(f);
             Log.i(TAG, macaroon);
             if (format.equals("hex")) {
@@ -345,10 +458,48 @@ public class LNDMobileWrapper extends ReactContextBaseJavaModule {
                 return macaroon;
             }
 
-        } catch (Exception e) {
-            e.printStackTrace();
+
+    }*/
+
+    byte[] decodeBase64String(String str){
+
+
+
+        return android.util.Base64.decode(str,Base64.DEFAULT | Base64.NO_PADDING |  Base64.NO_WRAP);
+    }
+    String getMacaroon(String network, String format) {
+
+        String path = reactContext.getFilesDir() + "/data/chain/bitcoin/" + network + "/admin.macaroon";
+
+
+        File f = new File(path);
+
+        if(f.exists() == false){
+            Log.i(TAG, "macaroon does not exist ");
+
+
             return "";
         }
+        String macaroon = encodeFileToBase64(f);
+
+
+        Log.i(TAG, "macaroon is "+macaroon);
+        if (format.equals("hex")) {
+
+
+            byte[] decoded = decodeBase64String(macaroon);
+            String hexMac =  "0" + String.format("%05X", new BigInteger(1, decoded));
+
+            Log.i(TAG, "hex macaroon is "+macaroon);
+            return hexMac;
+        } else {
+
+            Log.i(TAG, "base64 macaroon is "+macaroon);
+
+            return macaroon;
+        }
+
+
     }
 
     String getCert(String format) {
@@ -360,7 +511,7 @@ public class LNDMobileWrapper extends ReactContextBaseJavaModule {
             String cert = encodeFileToBase64(f);
             Log.i(TAG, cert);
             if (format.equals("hex")) {
-                byte[] decoded = java.util.Base64.getUrlDecoder().decode(cert);
+                byte[] decoded = android.util.Base64.decode(cert,Base64.DEFAULT);
                 return "0" + String.format("%050X", new BigInteger(1, decoded));
             } else {
                 return cert;
@@ -414,17 +565,43 @@ public class LNDMobileWrapper extends ReactContextBaseJavaModule {
 
 
                 if (_macaroon == null || _macaroon.length() == 0) {
+                        try {
+                            _macaroon = getMacaroon(_network, "hex");
 
-                    _macaroon = getMacaroon(_network, "hex");
-                    new java.util.Timer().schedule(
-                            new java.util.TimerTask() {
-                                @Override
-                                public void run() {
-                                    makeHttpRequest(url, promise);
+                            if(_macaroon.length() == 0){
+
+
+                                try {
+                                    JSONObject json = new JSONObject();
+                                    json.put("error", "macaroon does not exist");
+
+                                    promise.resolve(json.toString());
+                                } catch (Exception e2) {
+                                    promise.resolve("");
                                 }
-                            },
-                            1000
-                    );
+                            }
+                            new java.util.Timer().schedule(
+                                    new java.util.TimerTask() {
+                                        @Override
+                                        public void run() {
+                                            makeHttpRequest(url, promise);
+                                        }
+                                    },
+                                    1000
+                            );
+                        }catch(Exception e){
+                            e.printStackTrace();
+                            //promise.resolve();
+
+                            try {
+                                JSONObject json = new JSONObject();
+                                json.put("error", e.getLocalizedMessage());
+
+                                promise.resolve(json.toString());
+                            } catch (Exception e2) {
+                                promise.resolve("");
+                            }
+                        }
 
                     return;
                 }
@@ -827,5 +1004,95 @@ public class LNDMobileWrapper extends ReactContextBaseJavaModule {
             promise.resolve(params);
         }
     }
+
+
+    private void writeToFile(String data,String name,Context context) {
+        try {
+            OutputStreamWriter outputStreamWriter = new OutputStreamWriter(context.openFileOutput(name, Context.MODE_PRIVATE));
+            outputStreamWriter.write(data);
+            outputStreamWriter.close();
+        }
+        catch (IOException e) {
+            Log.e("Exception", "File write failed: " + e.toString());
+        }
+    }
+
+    @ReactMethod
+    public void ExportLogs(String network, String LNDInfo) {
+
+        final File appDir =reactContext.getFilesDir();
+
+
+        final File appDirNoBackUp =reactContext.getNoBackupFilesDir();
+
+
+
+        String outputPath = appDir + "/logs/bitcoin/"+network;
+
+           String filename = "lnd.log";
+
+
+
+
+        File filelocation = new File(outputPath, filename);
+
+        if(filelocation.exists() == false){
+            Log.i(TAG,"no exist");
+        }else{
+            Log.i(TAG,"exist");
+        }
+      //  Uri path = Uri.fromFile(filelocation);
+
+        Uri path = FileProvider.getUriForFile(reactContext,"com.nayutabox.file.provider",filelocation);
+
+
+
+        String outputPath2 = appDirNoBackUp + "/bitcoinDirec";
+        String filename2 = "debug.log";
+
+    try {
+
+        String str = getStringFromFile(outputPath2+"/"+filename2);
+
+        writeToFile(str,"debug.log",reactContext);
+    }
+    catch (Exception e){
+        Log.e(TAG,"Error");
+        e.printStackTrace();
+    }
+
+        String outputPath3 = appDir+"";
+
+        File filelocation2 = new File(outputPath3, filename2);
+
+        Uri path2 = FileProvider.getUriForFile(reactContext,"com.nayutabox.file.provider",filelocation2);
+
+        Intent emailIntent = new Intent(Intent.ACTION_SEND_MULTIPLE);
+// set the type to 'email'
+        emailIntent.setType("vnd.android.cursor.dir/email");
+        String to[] = {};
+
+
+
+        ArrayList<Uri> paths  = new ArrayList<Uri>();
+
+        paths .add(path);
+        paths .add(path2);
+
+        emailIntent.putExtra(Intent.EXTRA_EMAIL, to);
+// the attachment
+
+        emailIntent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, paths);
+
+        emailIntent.putExtra(Intent.EXTRA_SUBJECT, "Subject");
+
+        emailIntent.putExtra(Intent.EXTRA_TEXT,LNDInfo);
+
+        reactContext.getCurrentActivity().startActivity(Intent.createChooser(emailIntent, "Send email..."));
+
+    }
+
+
+
 
 }

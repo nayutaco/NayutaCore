@@ -134,8 +134,8 @@ android {
         applicationId "com.nayutabox"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 3
-        versionName "0.1.2"
+        versionCode 13
+        versionName "0.1.12"
     }
     splits {
         abi {
@@ -185,6 +185,7 @@ android {
 }
 
 dependencies {
+    implementation project(':react-native-notifications')
     implementation project(':react-native-device-info')
     implementation fileTree(dir: "libs", include: ["*.jar",'*.aar'])
     implementation "com.facebook.react:react-native:+"  // From node_modules
@@ -192,6 +193,7 @@ dependencies {
     implementation 'com.google.protobuf:protobuf-lite:3.0.0'
     implementation 'com.android.volley:volley:1.1.0'
     implementation 'com.jakewharton:process-phoenix:2.0.0'
+    compile 'com.google.android.gms:play-services-auth:9.4.0'
     if (enableHermes) {
         def hermesPath = "../../node_modules/hermes-engine/android/";
         debugImplementation files(hermesPath + "hermes-debug.aar")
@@ -231,3 +233,4 @@ task copyDownloadableDepsToLibs(type: Copy) {
 }
 
 apply from: file("../../node_modules/@react-native-community/cli-platform-android/native_modules.gradle"); applyNativeModulesAppBuildGradle(project)
+apply plugin: 'com.google.gms.google-services'

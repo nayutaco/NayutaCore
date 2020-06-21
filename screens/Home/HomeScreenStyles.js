@@ -1,5 +1,5 @@
 import { StyleSheet, Dimensions } from 'react-native'
-import AppStyles from '../../AppStyles';
+import AppStyles from '../../AppStyles'; 
 
 const { height,width } = Dimensions.get("window");
   
@@ -187,7 +187,7 @@ width:'100%'
     color: 'rgba(0,0,0,0.7)',
     textAlign: 'left',
     fontFamily: AppStyles.color.appFont,
-    fontSize: 30,
+    fontSize: 28,
   }, 
   statusText2: {
     marginTop:20,
@@ -252,7 +252,25 @@ timelineView:{
     textAlign: "center",
 
   },
+  timelineProvider: {  
+width:100,
+height:60,  
+justifyContent: 'flex-end',
+position: 'absolute', 
+left:5,
+bottom: 5
+  },
 
+  timelineProviderImage:{ 
+    width:100,
+    height:35,
+    resizeMode:"contain"
+  },
+  timelineProviderText:{
+    fontFamily: AppStyles.color.appFont,
+    fontSize: 10,
+    textAlign: "center",
+  },
   balanceTextBottom: {
     fontFamily: AppStyles.color.appFont,
     fontSize: 30,
@@ -272,6 +290,9 @@ timelineView:{
   },
   contentContainer: {
     paddingTop: 30,
+  },
+  bitsAnimation:{
+    marginTop: 20,
   },
   welcomeContainer: {
     alignItems: 'center',

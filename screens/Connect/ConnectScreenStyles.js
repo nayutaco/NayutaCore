@@ -58,9 +58,9 @@ export default StyleSheet.create({
     width: '80%'
   },
   qrCodeView: {
-    marginTop: Dimensions.get('window').height * 0.2,
-    width: 500,
-    backgroundColor: 'rgba(255,0,0,0.0)',
+   height:"100%",
+    width:"100%",
+    backgroundColor: 'rgba(0,0,0,0.6)',
     position: "absolute",
     textAlign: "center",
     alignItems: 'center',
@@ -75,11 +75,11 @@ export default StyleSheet.create({
     width: 50,
     height: 50
   },
-  instructionsIcon: {
-    marginLeft: 10,
+ appIcon: { 
     marginTop: 20,
-    width: 40,
-    height: 40
+    marginLeft:20,
+    width: 70,
+    height: 70
   },
   connectButton: {
 
@@ -87,15 +87,18 @@ export default StyleSheet.create({
     textAlign: "center"
   },
   qrCodeInstructions: {
-    marginTop: 20,
-    width: '100%',
-    flexDirection: 'row',
-    alignItems: 'center'
+    marginTop: 20, 
+    alignItems:"center",
+    flexDirection: 'row', 
+    justifyContent:"center" 
+  },
+  iconsView:{
+    width:300, 
+    flexDirection:'row', 
+    alignItems:'center'  
   },
   qrCodeInstructionsTop: {
-    marginTop: 30,
-    marginLeft: 50,
-    width: '100%',
+    marginTop: 30, 
     flexDirection: 'row',
     alignItems: 'center'
   },
@@ -147,18 +150,7 @@ export default StyleSheet.create({
     borderWidth: 1,
 
     justifyContent: 'center',
-  },
-  roundedButton: {
-    textAlign: "center",
-    marginTop: 20,
-    height: 40,
-    width: '50%',
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: '#fff',
-    justifyContent: 'center',
-  },
-
+  }, 
   modeContainer: {
     position: 'absolute',
     bottom: 150,
@@ -173,11 +165,41 @@ export default StyleSheet.create({
     height: "100%",
     backgroundColor: '#fff',
   },
+ 
+  simpleButtonText: {
+    color: 'white',
+    textAlign: 'center',
+    fontFamily: AppStyles.color.appFont,
+    fontSize: 15,
+  },
 
   innerView: {
     height: Dimensions.get('window').height,
     width: Dimensions.get('window').width,
     alignItems: 'center',
+  },
+
+  roundedButton: {
+    marginTop:30, 
+    alignSelf: 'flex-start',
+    height: 40,
+    width: 100,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: AppStyles.color.appBlack,
+    justifyContent: 'center',
+    backgroundColor: AppStyles.color.appBlack,
+  },
+
+  title: {
+    marginTop: 50,
+    fontFamily: AppStyles.color.appFont,
+    fontSize: 20,
+    marginLeft: 20,
+    marginRight: 20,
+    textAlign: "center",
+
+
   },
 
   titleText: {
@@ -216,8 +238,9 @@ export default StyleSheet.create({
   subtitle: {
     fontFamily: AppStyles.color.appFont,
     fontSize: 17,
-    color: 'rgba(0,0,0,0.4)',
+    color: 'white',
     textAlign: "center",
+    
 
   },
   instructionsSubtitle: {
@@ -228,6 +251,10 @@ export default StyleSheet.create({
     color: 'rgba(0,0,0,0.4)',
     textAlign: "center",
 
+  },
+  segmentedControl:{
+    width:"70%",
+    marginTop: 20,
   },
   connectionWarning: {
     marginTop: 200,

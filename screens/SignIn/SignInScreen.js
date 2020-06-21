@@ -384,14 +384,20 @@ export default class SignInScreen extends Component {
   <View style={styles.centerContainer}>
   <Text style={styles.infoText}>
   The initial blockchain sync typically takes 4 to 5 days.
+  
+  </Text>
+  <Text style={styles.infoText}>
+  Once complete, you'll be able to connect your node to other services...
+  </Text>
 
-  Once complete, you'll be able to connect your node to other services and start enjoying the benefits of running a full node.
+  <Text style={styles.infoText}>
+ and start enjoying the benefits of running a full node.
   </Text>
   </View>
   <View style={[styles.buttonsContainer]}>
 
     <TouchableOpacity style={[styles.simpleButton]} onPress={this.goToMainPage.bind(this)}>
-      <Text style={styles.simpleButtonText}>Welcome and let's get started! </Text>
+      <Text style={styles.simpleButtonTextSmall}>Welcome and let's get started! </Text>
     </TouchableOpacity>
 
   </View>

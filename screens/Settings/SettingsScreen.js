@@ -4,16 +4,12 @@ import AppStyles from '../../AppStyles';
 import { Icon } from 'react-native-elements'
 import * as Keychain from 'react-native-keychain';
 import { encrypt, decrypt } from 'react-native-simple-encryption';
-import { CustomLog, CustomError, GetUserPreferences, SetUserPreferences } from '../../tools/utils';
+import { GetGlobalInfo, CustomLog, CustomError, GetUserPreferences, SetUserPreferences } from '../../tools/utils';
 import DeviceInfo from 'react-native-device-info';
 
 import {
-  Image,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  Dimensions,
+  NativeModules,
+  Text, 
   TouchableOpacity,
   View,
 } from 'react-native';
@@ -21,10 +17,14 @@ import {
 import { MonoText } from '../../components/StyledText';
 import { AnimatedCircularProgress } from 'react-native-circular-progress';
 
+const lndMobileWrapperModule = NativeModules.LNDMobileWrapper;
+const androidCoreWrapperModule = NativeModules.AndroidCoreWrapper;
 export default class OnChainScreen extends Component {
 
 state = {
-  otherNetwork:""
+  otherNetwork:"",
+  alwaysBackend:false,
+  alwaysBackendText:"always use neutrino"
 }
   constructor(props) {
     super(props);
@@ -40,9 +40,17 @@ state = {
 async componentDidMount(){
   const network = await GetUserPreferences("network","mainnet");
   if(network === "mainnet"){
-    this.setState({otherNetwork:"testnet"});
+    this.setState({network:network,otherNetwork:"testnet"});
   }else{
-    this.setState({otherNetwork:"mainnet"});
+    this.setState({network:network,otherNetwork:"mainnet"});
+  }
+
+
+  const backend = await GetUserPreferences("alwaysNeutrinoBackend");
+  if(backend === "true"){
+    this.setState({alwaysBackend:true, alwaysBackendText:"disable always use neutrino"});
+  }else{
+    this.setState({alwaysBackend:false, alwaysBackendText:"always use neutrino"});
   }
 
 
@@ -62,12 +70,46 @@ async componentDidMount(){
       this.setState({otherNetwork:"mainnet"})
     }
 
+    this.stopServices();
 
+    alert("please restart the app and stop any background processes for changes to take effect")
+    
+  }
+
+  async changeBackend(){
+   
+    if(this.state.alwaysBackend == true){
+     await SetUserPreferences("alwaysNeutrinoBackend","");
+     this.setState({alwaysBackend:false,alwaysBackendText:"always use neutrino"})
+    }else{
+      await SetUserPreferences("alwaysNeutrinoBackend","true");
+      this.setState({otherBackend:true,alwaysBackendText:"disable always use neutrino"})
+    }
+
+    this.stopServices();
     alert("please restart the app and stop any background processes for changes to take effect")
   }
 
   reindex() {
     alert("coming soon");
+  }
+
+  exportLogs() {
+    
+   const {network} = this.state;
+   var globalInfo = GetGlobalInfo();
+   lndMobileWrapperModule.ExportLogs(network,  globalInfo.lndGetInfo);
+  
+  }
+
+
+  stopServices(){
+    androidCoreWrapperModule.cancelJob();
+
+    androidCoreWrapperModule.cancelForeground();
+
+    androidCoreWrapperModule.stopCore();
+
   }
 
   async getPassword() {
@@ -126,7 +168,7 @@ async componentDidMount(){
 
   render() {
 
-    const {otherNetwork} = this.state;
+    const {otherNetwork,alwaysBackendText} = this.state;
     
     return (
       <View style={[styles.backgroundView]}>
@@ -172,7 +214,22 @@ async componentDidMount(){
           </View>
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={this.exportXPub.bind(this)}>
+
+        <TouchableOpacity onPress={this.changeBackend.bind(this)}>
+          <View style={[styles.menuItem]}>
+
+            <View style={[styles.menuItemInner]}>
+              <Text style={[styles.menuText]}>{alwaysBackendText} </Text>
+
+            </View>
+            <View style={[styles.iconView]}>
+              <Icon size={50} color={'rgba(130,130,130,1)'}
+                name='keyboard-arrow-right' />
+            </View>
+          </View>
+        </TouchableOpacity>
+
+        {/*<TouchableOpacity onPress={this.exportXPub.bind(this)}>
           <View style={[styles.menuItem]}>
 
             <View style={[styles.menuItemInner]}>
@@ -184,9 +241,12 @@ async componentDidMount(){
                 name='keyboard-arrow-right' />
             </View>
           </View>
-        </TouchableOpacity>
+    </TouchableOpacity>
 
-        <TouchableOpacity onPress={this.reindex.bind(this)}>
+ 
+
+        */}
+       <TouchableOpacity onPress={this.reindex.bind(this)}>
           <View style={[styles.menuItem]}>
 
             <View style={[styles.menuItemInner]}>
@@ -199,8 +259,24 @@ async componentDidMount(){
             </View>
           </View>
         </TouchableOpacity>
+  <TouchableOpacity onPress={this.exportLogs.bind(this)}>
+          <View style={[styles.menuItem]}>
+
+            <View style={[styles.menuItemInner]}>
+              <Text style={[styles.menuText]}>export logs </Text>
+
+            </View>
+            <View style={[styles.iconView]}>
+              <Icon size={50} color={'rgba(130,130,130,1)'}
+                name='keyboard-arrow-right' />
+            </View>
+          </View>
+        </TouchableOpacity>
+
         <Text style={[styles.versionText]}>ver {DeviceInfo.getVersion()} </Text>
       </View>
+
+
 
     )
 

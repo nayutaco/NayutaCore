@@ -20,6 +20,16 @@ export function GetGlobalInfo() {
 
 }
 
+
+export function GetNodeFromStartUpData(startUpData) {
+
+  if(startUpData.ipAddress === undefined || startUpData.port === undefined){
+    return null;
+  }
+  
+  return startUpData.ipAddress+":"+startUpData.port;
+
+}
 export function BTCToFiat(btcAmount, fiatValues) {
   const locale = NativeModules.I18nManager.localeIdentifier;
   console.log("locale is " + locale);
@@ -43,8 +53,7 @@ export function satsToBTC(sats) {
   return sats / 100000000;
 }
 
-export async function GetUserPreferences(key, defaultValue) {
-
+export async function GetUserPreferences(key, defaultValue) { 
   let value = await DefaultPreference.get(key);
   if(value == undefined){
     return defaultValue;
@@ -60,12 +69,13 @@ export async function SetUserPreferences(key, value) {
   return res;
 }
 
-export function GetLNDConf(network, backend, password) {
+export function GetLNDConf(network, backend, password, peers) {
 
   var configString = "[Application Options]\n\n";
   configString += "maxbackoff=2s\n"
   configString += "debuglevel=info\n"
-
+ 
+  configString += "listen=0.0.0.0:9739\n"//so it doesnt clash with other wallets
   //configString += "sync-freelist=0\n"
   configString += "rpclisten=127.0.0.1:10009\n"
   configString += "restlisten=127.0.0.1:8080\n"
@@ -75,7 +85,6 @@ export function GetLNDConf(network, backend, password) {
   configString += "maxpendingchannels=2\n"
   configString += "\n[Bitcoin]\n\n"
   configString += "bitcoin.active=1\n"
-
   if (network == "testnet") {
     configString += "bitcoin.testnet=1\n"
   } else {
@@ -123,11 +132,11 @@ export function GetLNDConf(network, backend, password) {
   if (backend === "neutrino") {
     configString += "\n[Neutrino]\n\n"
 
-    /*
-        var neutrinoPeer = '104.41.162.211:18333';
+    peers.forEach(aPeer=> {
+      configString += "neutrino.addpeer=" +aPeer + "\n"; 
+    });
     
-    
-        configString += "neutrino.addpeer=" + neutrinoPeer + "\n";*/
+       
     if (network === "testnet") {
       var feeUrl = "https://nodes.lightning.computer/fees/v1/btctestnet-fee-estimates.json";
     } else {
@@ -142,7 +151,7 @@ export function GetLNDConf(network, backend, password) {
   return configString;
 
 }
-export function GetBitcoinConf(network, password) {
+export function GetBitcoinConf(network, password, maxMemory) {
   var config = ""
   config += "listen=1\n";
   config += "disablewallet=1\n";
@@ -152,15 +161,41 @@ export function GetBitcoinConf(network, password) {
   config += "prune=550\n";
   config += "upnp=0\n";
   config += "blocksonly=1\n";
+  config += "bitcoind.rpchost=localhost\n";
   config += "rpcpassword="+password+"\n";
   config += "rpcuser=bitcoinrpc\n";
   config += "server=1\n";
 
+  console.log("Max memory is",maxMemory);
+  
+  
+  var mem = Math.floor((1902936064 / 1000000) / 2);
+ 
+  config += "dbcache="+mem+"\n"; 
   config += "zmqpubrawblock=tcp://127.0.0.1:28332\n"
   config += "zmqpubrawtx=tcp://127.0.0.1:28333\n"
 
-
+  console.log(config);
   return config;
 
 }
 
+
+export function GetTestnetPeers(){
+  var peers = [];
+  peers.push("203.132.95.10:9735");
+  peers.push("50.116.3.223:9734");
+  peers.push("3.16.119.191:9735"); 
+  peers.push("13.248.222.197:9735");
+  peers.push("faucet.lightning.community");  
+  return peers; 
+}
+
+
+export function TimeoutPromise(timeout, err, promise) {
+  return new Promise(function(resolve,reject) {
+    promise.then(resolve,reject);
+    setTimeout(reject.bind(null,err), timeout);
+  });
+}
+ 

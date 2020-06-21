@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "505132888797",
+    "firebase_url": "https://nayutabox-6b232.firebaseio.com",
+    "project_id": "nayutabox-6b232",
+    "storage_bucket": "nayutabox-6b232.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:505132888797:android:6383016dd21943a06ee134",
+        "android_client_info": {
+          "package_name": "com.nayutabox"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "505132888797-8ock9occp4ebvmr7jac8j26eef4pi74s.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBRBBHkMsZkllVcZf3PoqdC5h7M1fmpND8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "505132888797-8ock9occp4ebvmr7jac8j26eef4pi74s.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

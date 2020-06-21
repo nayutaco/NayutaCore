@@ -2,7 +2,18 @@
 
 package com.nayutabox;
 
+import android.app.AlarmManager;
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.Context;
+import android.content.Intent;
+import android.media.AudioAttributes;
+import android.media.AudioManager;
+import android.net.Uri;
+import android.os.Build;
+import android.os.SystemClock;
 import android.widget.Toast;
 
 import com.facebook.react.bridge.Promise;
@@ -20,9 +31,15 @@ import java.util.Map;
 import java.util.HashMap;
 import android.util.Log;
 import android.app.Activity;
+
+import androidx.core.app.NotificationCompat;
+
 import com.indiesquare.androidcrypto.AndroidCrypto;
 import com.mandelduck.lndmobilewrapper.*;
 import com.mandelduck.androidcore.*;
+
+import static com.nayutabox.MainActivity.NOTIFICATION_CHANNEL_ID;
+import static com.swmansion.reanimated.MapUtils.getString;
 
 public class AndroidCoreWrapper extends ReactContextBaseJavaModule {
   private static ReactApplicationContext reactContext;
@@ -65,7 +82,48 @@ public class AndroidCoreWrapper extends ReactContextBaseJavaModule {
 
   }
 
+  @ReactMethod
+  public void localNotification(String title,String content){
 
+    Intent intent = new Intent(reactContext, NotificationPub.class);
+    intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+    PendingIntent pendingIntent = PendingIntent.getActivity(reactContext, 0, intent, PendingIntent.FLAG_ONE_SHOT);
+
+
+
+    Uri soundUri = Uri.parse("android.resource://" + reactContext.getPackageName() + "/" + R.raw.beep);
+    NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(reactContext, NOTIFICATION_CHANNEL_ID)
+            .setSmallIcon(R.mipmap.ic_launcher)
+            .setContentTitle(title)
+            .setContentText(content)
+            .setAutoCancel(true)
+            .setSound(soundUri)
+            .setContentIntent(pendingIntent);
+
+    NotificationManager mNotificationManager = (NotificationManager) reactContext.getSystemService(Context.NOTIFICATION_SERVICE);
+    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+
+      if(soundUri != null){
+        // Changing Default mode of notification
+        notificationBuilder.setDefaults(Notification.DEFAULT_VIBRATE);
+        // Creating an Audio Attribute
+        AudioAttributes audioAttributes = new AudioAttributes.Builder()
+                .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                .setUsage(AudioAttributes.USAGE_ALARM)
+                .build();
+
+        // Creating Channel
+        NotificationChannel notificationChannel = new NotificationChannel(NOTIFICATION_CHANNEL_ID,"Testing_Audio",NotificationManager.IMPORTANCE_HIGH);
+        notificationChannel.setSound(soundUri,audioAttributes);
+        mNotificationManager.createNotificationChannel(notificationChannel);
+        Log.e("ABCORE","Created Notification Channel");
+      }
+    }
+    mNotificationManager.notify(0, notificationBuilder.build());
+
+
+
+  }
 
   @ReactMethod
   public void setUp(String config) {
@@ -146,6 +204,13 @@ public class AndroidCoreWrapper extends ReactContextBaseJavaModule {
     com.mandelduck.androidcore.MainController.getBlockchainInfo();
 
   }
+
+  @ReactMethod
+  public void stopTorHiddenService() {
+    com.mandelduck.androidcore.MainController.stopTorHiddenService();
+
+  }
+
 
 
   @ReactMethod
