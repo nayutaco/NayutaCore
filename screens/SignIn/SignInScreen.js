@@ -1,9 +1,10 @@
 
 //import React from 'react';
 import styles from './SignInScreenStyles';
-import React, { Component } from 'react';
-import I18n from '../../i18n';
+import React, { Component } from 'react'; 
 import { GetUserPreferences, SetUserPreferences } from '../../tools/utils';
+import CheckBox from '@react-native-community/checkbox';
+import { WebView } from 'react-native-webview';
 
 import {
   Animated,
@@ -12,19 +13,21 @@ import {
   Text,
   TouchableOpacity,
   View,
-} from 'react-native';
-
-
+} from 'react-native'; 
+const DID_SHOW_INTRO_KEY = "didShowIntroV1";
 export default class SignInScreen extends Component {
 
   state = {
     intro1Loaded: false,
     intro2Loaded: false,
     intro3Loaded: false,
-    intro4Loaded: false
+    intro4Loaded: false,
+    showTerms: false,
+    showDisclaimer: false,
+    toggleCheckBox:false, 
   }
 
-  async UNSAFE_componentWillMount() {
+  async UNSAFE_componentWillMount() { 
     this.animatedValueText = new Animated.Value(0)
     this.animatedValueText2 = new Animated.Value(0)
     this.animatedValueView = new Animated.Value(0)
@@ -35,6 +38,8 @@ export default class SignInScreen extends Component {
     this.animatedIntroView2 = new Animated.Value(0) 
     this.animatedIntroView3 = new Animated.Value(0) 
     this.animatedIntroView4 = new Animated.Value(0) 
+    this.animatedIntroView5 = new Animated.Value(0) 
+    this.animatedIntroView6 = new Animated.Value(0) 
 
     let that = this;
 
@@ -62,10 +67,10 @@ export default class SignInScreen extends Component {
  
     
  
-    const val = await GetUserPreferences("didShowIntro");
+    const val = await GetUserPreferences(DID_SHOW_INTRO_KEY);
  
     if(val === "TRUE"){
-      this.goToMainPage();
+    this.goToMainPage();
     }
 
   }
@@ -93,6 +98,7 @@ export default class SignInScreen extends Component {
   }
 
   goToIntro2() {
+    Animated.timing(this.animatedWelcomeView, { toValue: 100, duration: 1000, useNativeDriver: true }).start()
     Animated.timing(this.animatedIntroView1, { toValue: 0, duration: 1000, useNativeDriver: true }).start()
     let that = this;
     setTimeout(function () {
@@ -105,6 +111,7 @@ export default class SignInScreen extends Component {
 
   goToIntro3() {
     Animated.timing(this.animatedIntroView2, { toValue: 0, duration: 1000, useNativeDriver: true }).start()
+    
     let that = this;
     setTimeout(function () {
       Animated.timing(that.animatedIntroView3, { toValue: 100, duration: 1000, useNativeDriver: true }).start()
@@ -117,6 +124,7 @@ export default class SignInScreen extends Component {
 
   goToIntro4() {
     Animated.timing(this.animatedIntroView3, { toValue: 0, duration: 1000, useNativeDriver: true }).start()
+    Animated.timing(this.animatedIntroView2, { toValue: 0, duration: 1000, useNativeDriver: true }).start()
     let that = this;
     setTimeout(function () {
       Animated.timing(that.animatedIntroView4, { toValue: 100, duration: 1000, useNativeDriver: true }).start()
@@ -128,13 +136,33 @@ export default class SignInScreen extends Component {
    
 
   async goToMainPage() {
-    await SetUserPreferences("didShowIntro","TRUE");
+    await SetUserPreferences(DID_SHOW_INTRO_KEY,"TRUE");
          
        
     this.props.navigation.navigate('Home');
 
   }
 
+   showTerms() {
+    Animated.timing(this.animatedIntroView4, { toValue: 0, duration: 1000, useNativeDriver: true }).start()
+    let that = this;
+    setTimeout(function () {
+      Animated.timing(that.animatedIntroView5, { toValue: 100, duration: 1000, useNativeDriver: true }).start()
+      that.setState({ showTerms: true })
+    }, 1000);
+  }
+
+  showDisclaimer() {
+    Animated.timing(this.animatedIntroView5, { toValue: 0, duration: 1000, useNativeDriver: true }).start()
+    let that = this;
+    setTimeout(function () {
+      Animated.timing(that.animatedIntroView6, { toValue: 100, duration: 1000, useNativeDriver: true }).start()
+      that.setState({ showDisclaimer: true })
+    }, 1000);
+  }
+  setToggleCheckBox(val){
+    this.setState({toggleCheckBox:val});
+  }
   render() {
 
     const interpolateColorText = this.animatedValueText.interpolate(
@@ -216,12 +244,30 @@ export default class SignInScreen extends Component {
     )
     const animatedIntroView4 = { opacity: interpolateIntroView4 }
 
-     
+
+
+    const interpolateIntroView5 = this.animatedIntroView5.interpolate(
+      {
+        inputRange: [0, 100],
+        outputRange: [0, 1]
+      }
+    )
+    const animatedIntroView5 = { opacity: interpolateIntroView5 }
 
      
 
+    const interpolateIntroView6 = this.animatedIntroView6.interpolate(
+      {
+        inputRange: [0, 100],
+        outputRange: [0, 1]
+      }
+    )
+    const animatedIntroView6= { opacity: interpolateIntroView6 }
 
-    const { intro1Loaded, intro2Loaded, intro3Loaded, intro4Loaded} = this.state;
+     
+
+
+    const {toggleCheckBox,showTerms, showDisclaimer, intro1Loaded, intro2Loaded, intro3Loaded, intro4Loaded} = this.state;
 
     return (
 
@@ -245,7 +291,7 @@ export default class SignInScreen extends Component {
           </View>
           <Animated.View style={[styles.buttonsContainer, animatedFadeView2]}>
 
-            <TouchableOpacity style={[styles.simpleButton]} onPress={this.goToIntro1.bind(this)}>
+            <TouchableOpacity style={[styles.simpleButton]} onPress={this.goToIntro2.bind(this)}>
               <Text style={styles.simpleButtonText}>continue</Text>
             </TouchableOpacity>
 
@@ -260,13 +306,13 @@ export default class SignInScreen extends Component {
 
           <Animated.View style={[styles.intro1Container, animatedIntroView1]}>
 
-            <Text style={[styles.introTitle]}>Why fullnode?</Text>
+            <Text style={[styles.introTitle]}>Why Bitcoin Fullnode?</Text>
             <View style={styles.centerContainer}>
 
               <View style={styles.introItem}>
                 <Image source={require('../../assets/images/privacyIcon.png')}
                   style={styles.introItemImage} />
-                <Text style={[styles.introItemText]}>Improve privacy </Text>
+                <Text style={[styles.introItemText]}>Do not trust, verify</Text>
               </View>
 
               <View style={styles.introItem}>
@@ -316,14 +362,21 @@ export default class SignInScreen extends Component {
               <View style={styles.introItem}>
                 <Image source={require('../../assets/images/appLinkIcon.png')}
                   style={styles.introItemImage} />
-                <Text style={[styles.introItemText]}>Connect to other wallets and services</Text>
+                <Text style={[styles.introItemText]}>Connect to other wallets and lapps</Text>
               </View>
 
 
+              <View style={styles.introItem}>
+                <Image source={require('../../assets/images/chartIcon.png')}
+                  style={styles.introItemImage} />
+                <Text style={[styles.introItemText]}>Keep up with the latest Bitcoin block data</Text>
+              </View>
+
+              
             </View>
             <View style={[styles.buttonsContainer]}>
 
-              <TouchableOpacity style={[styles.simpleButton]} onPress={this.goToIntro3.bind(this)}>
+              <TouchableOpacity style={[styles.simpleButton]} onPress={this.goToIntro4.bind(this)}>
                 <Text style={styles.simpleButtonText}>next</Text>
               </TouchableOpacity>
 
@@ -337,29 +390,29 @@ export default class SignInScreen extends Component {
 
 <Animated.View style={[styles.intro1Container, animatedIntroView3]}>
 
-  <Text style={[styles.introTitle]}>How to get started</Text>
+  <Text style={[styles.introTitle]}>Recommended setup</Text>
    
   
   <View style={styles.centerContainerLess}>
   <Text style={styles.infoTextTop}>
-  We recommend preparing a dedicated Android device for the best intended experience. Dig up your old Android phone!
+  The Bitcoin blockchain synchronization takes up some bandwidth and memory.
   </Text>
     <View style={styles.introItem}>
       <Image source={require('../../assets/images/wifiIcon.png')}
         style={styles.introItemImage} />
-      <Text style={[styles.introItemText]}>Connect to WIFI</Text>
+      <Text style={[styles.introItemText]}>Plug in</Text>
     </View>
 
     <View style={styles.introItem}>
       <Image source={require('../../assets/images/awakeIcon.png')}
         style={styles.introItemImage} />
-      <Text style={[styles.introItemText]}>Adjust Screentime</Text>
+      <Text style={[styles.introItemText]}>Connect to WIFI</Text>
     </View>
 
     <View style={styles.introItem}>
       <Image source={require('../../assets/images/powerIcon.png')}
         style={styles.introItemImage} />
-      <Text style={[styles.introItemText]}>Plug in</Text>
+      <Text style={[styles.introItemText]}>Kill other unused apps</Text>
     </View>
 
 
@@ -391,16 +444,89 @@ export default class SignInScreen extends Component {
   </Text>
 
   <Text style={styles.infoText}>
- and start enjoying the benefits of running a full node.
+ And start enjoying the benefits of running a full node.
   </Text>
   </View>
   <View style={[styles.buttonsContainer]}>
 
-    <TouchableOpacity style={[styles.simpleButton]} onPress={this.goToMainPage.bind(this)}>
-      <Text style={styles.simpleButtonTextSmall}>Welcome and let's get started! </Text>
+    <TouchableOpacity style={[styles.simpleButton]} onPress={this.showTerms.bind(this)}>
+      <Text style={styles.simpleButtonTextSmall}>Next</Text>
     </TouchableOpacity>
 
   </View>
+
+
+</Animated.View>
+}
+
+
+{showTerms &&
+
+<Animated.View style={[styles.intro1Container, animatedIntroView5]}>
+
+
+<WebView
+        originWhitelist={['*']}
+        source={{html: require('./../../assets/terms.js')()}}
+        style={[styles.webView]}
+      />
+     {/* 
+  <Text style={[styles.introTitle]}>Terms and Conditions</Text>
+  <View style={styles.centerContainer}>
+  <Text style={styles.infoText}>
+  Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.
+  </Text>
+   
+ 
+     </View>*/}
+  <View style={[styles.buttonsContainer]}>
+
+  
+    <TouchableOpacity style={[styles.roundedButton]} onPress={this.showDisclaimer.bind(this)}>
+      <Text style={styles.simpleButtonTextSmallWhite}>I have read and agree</Text>
+    </TouchableOpacity>
+
+  </View>
+
+
+</Animated.View>
+}
+
+
+{showDisclaimer &&
+
+<Animated.View style={[styles.intro1Container, animatedIntroView6]}>
+
+  <Text style={[styles.introTitle]}>Disclaimer</Text>
+  <View style={styles.centerContainer}>
+  <Text style={styles.infoText}> 
+Nayuta Core is in beta and is provided on an "as is" basis.{"\n\n"}
+Bugs are expected and loss of fund while using the app may occur.{"\n\n"}
+We cannot be responsible for the potential damage caused by app malfunctioning and/or failure to backup the fund.{"\n\n"}
+Use at your own sole risk.
+  </Text>
+   
+ 
+  </View>
+  <View style={{flexDirection:"row"}}>
+  <CheckBox
+    disabled={false}
+    value={toggleCheckBox}
+    onValueChange={(newValue) => this.setToggleCheckBox(newValue)}
+  />
+  <Text style={styles.toggleText}> 
+  I understand
+  </Text>
+  </View>
+{toggleCheckBox &&
+  <View style={[styles.buttonsContainer]}>
+
+    <TouchableOpacity style={[styles.roundedButton]} onPress={this.goToMainPage.bind(this)}>
+      <Text style={styles.simpleButtonTextSmallWhite}>Begin</Text>
+    </TouchableOpacity>
+
+  </View>
+}
 
 
 </Animated.View>

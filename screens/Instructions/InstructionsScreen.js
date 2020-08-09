@@ -16,7 +16,7 @@ import {
 const animationSpeed = 300;
 
 export default class InstructionsScreen extends Component {
- 
+
   state = {
     instruction1Loaded: true,
     instruction2Loaded: false,
@@ -36,7 +36,7 @@ export default class InstructionsScreen extends Component {
     this.animatedIntroView3 = new Animated.Value(0)
     var that = this;
 
- 
+
     this.goToInstruction1();
 
   }
@@ -46,14 +46,14 @@ export default class InstructionsScreen extends Component {
       title: 'SecondActivity',
     };
   constructor(props) {
-    super(props); 
+    super(props);
 
 
   }
 
   goToInstruction1() {
 
-    Animated.timing(this.animatedWelcomeView, { toValue: 100, duration: animationSpeed, useNativeDriver: true}).start()
+    Animated.timing(this.animatedWelcomeView, { toValue: 100, duration: animationSpeed, useNativeDriver: true }).start()
     let that = this;
     setTimeout(function () {
 
@@ -86,7 +86,7 @@ export default class InstructionsScreen extends Component {
   }
 
   closePage() {
-    
+
     this.props.navigation.goBack(null);
 
   }
@@ -97,7 +97,7 @@ export default class InstructionsScreen extends Component {
 
 
   render() {
- 
+
     const interpolateIntroView1 = this.animatedIntroView1.interpolate(
       {
         inputRange: [0, 100],
@@ -124,28 +124,28 @@ export default class InstructionsScreen extends Component {
 
 
     const { instruction1Loaded, instruction2Loaded, instruction3Loaded } = this.state;
-   
+
     return (
-      
+
       <View style={styles.container}>
 
 
-        
+
 
 
         {instruction1Loaded &&
           <Animated.View style={[styles.intro1Container, animatedIntroView1]}>
             <Text style={[styles.introTitle]}>1. Enable developer options</Text>
 
-            <View style={styles.introItemTop}> 
-                <Text style={[styles.introItemTextTop]}>Depending on your device these instructions may not be accurate, if so you will need to search online device specific information</Text>
-              </View>
+            <View style={styles.introItemTop}>
+              <Text style={[styles.introItemTextTop]}>Depending on your device these instructions may not be accurate, if so you will need to search online device specific information</Text>
+            </View>
 
 
             <View style={styles.centerContainer}>
 
 
-          
+
               <View style={styles.introItem}>
                 <Image source={require('../../assets/images/settingsIcon.png')}
                   style={styles.introItemImage} />
@@ -245,8 +245,8 @@ export default class InstructionsScreen extends Component {
 
 
             </View>
-            <View style={[styles.buttonsContainer]}> 
-              <TouchableOpacity  style={[styles.simpleButton]} onPress={this.closePage.bind(this)}>
+            <View style={[styles.buttonsContainer]}>
+              <TouchableOpacity style={[styles.simpleButton]} onPress={this.closePage.bind(this)}>
                 <Text style={styles.simpleButtonText}>close</Text>
               </TouchableOpacity>
 

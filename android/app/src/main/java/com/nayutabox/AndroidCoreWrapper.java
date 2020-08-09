@@ -9,11 +9,13 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.media.AudioAttributes;
 import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.SystemClock;
+import android.preference.PreferenceManager;
 import android.widget.Toast;
 
 import com.facebook.react.bridge.Promise;
@@ -184,8 +186,22 @@ public class AndroidCoreWrapper extends ReactContextBaseJavaModule {
 
   }
 
-
   @ReactMethod
+  public String getSavedBestBlockHashes() {
+    SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(reactContext);
+
+    if (settings != null) {
+      return settings.getString("bestBlockHashesV1", "{}");
+
+    }
+
+    Log.i("best block","Sdsds2");
+    return "";
+
+  }
+
+
+    @ReactMethod
   public void startDownload() {
     Log.d("ABCORE","starting download");
     com.mandelduck.androidcore.MainController.startDownload();

@@ -134,8 +134,8 @@ android {
         applicationId "com.nayutabox"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 13
-        versionName "0.1.12"
+        versionCode 25
+        versionName "0.1.24"
     }
     splits {
         abi {

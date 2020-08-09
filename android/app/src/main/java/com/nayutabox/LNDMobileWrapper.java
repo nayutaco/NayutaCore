@@ -15,6 +15,7 @@ import com.android.volley.toolbox.BasicNetwork;
 import com.android.volley.toolbox.DiskBasedCache;
 import com.android.volley.toolbox.HurlStack;
 import com.android.volley.toolbox.JsonObjectRequest;
+import com.facebook.react.bridge.ReactContext;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.bridge.Arguments;
 
@@ -22,6 +23,7 @@ import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
+import com.facebook.react.modules.core.DeviceEventManagerModule;
 import com.google.protobuf.ByteString;
 
 import java.io.BufferedInputStream;
@@ -54,6 +56,7 @@ import java.util.HashMap;
 
 import android.util.Log;
 
+import androidx.annotation.Nullable;
 import androidx.core.content.FileProvider;
 
 import com.jakewharton.processphoenix.ProcessPhoenix;
@@ -71,6 +74,8 @@ import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManagerFactory;
+
+import static io.invertase.firebase.common.SharedUtils.sendEvent;
 
 
 public class LNDMobileWrapper extends ReactContextBaseJavaModule {
@@ -200,15 +205,7 @@ public class LNDMobileWrapper extends ReactContextBaseJavaModule {
         }
         return base64File;
     }
-/*
-    private static String encodeFileToBase64(File file) {
-        try {
-            byte[] fileContent = Files.readAllBytes(file.toPath());
-            return java.util.Base64.getUrlEncoder().encodeToString(fileContent);
-        } catch (IOException e) {
-            throw new IllegalStateException("could not read file " + file, e);
-        }
-    }*/
+
 
     public SSLSocketFactory getSocketFactory(Context context)
             throws CertificateException, IOException, KeyStoreException, NoSuchAlgorithmException, KeyManagementException {
@@ -324,56 +321,6 @@ public class LNDMobileWrapper extends ReactContextBaseJavaModule {
             }
         }
     }
-/*
-    @ReactMethod
-    public void getLNDConnectURI(String network, com.facebook.react.bridge.Callback callback) {
-
-
-        String macaroon = getMacaroon(network, "base64");
-
-        String path = reactContext.getFilesDir() + "/tls.cert";
-
-
-        try {
-            String contents = new String(Files.readAllBytes(Paths.get(path)));
-            contents = contents.replace("-----BEGIN CERTIFICATE-----", "").replace("-----END CERTIFICATE-----", "").replaceAll("\n", "").replaceAll("\r", "");
-            Log.i(TAG, "uri contents " + contents);
-
-
-            byte[] decoded = java.util.Base64.getDecoder().decode(contents);
-            String cert = java.util.Base64.getUrlEncoder()
-                    .withoutPadding()
-                    .encodeToString(decoded);
-
-            Log.i(TAG, "cert contents " + cert);
-
-            path = reactContext.getNoBackupFilesDir() + "/tordata/hostname";
-            String onionAddress = new String(Files.readAllBytes(Paths.get(path)));
-            onionAddress = onionAddress.replaceAll("\n", "").replaceAll("\r", "");
-            Log.i(TAG, "onions address " + onionAddress);
-            String uri = "lndconnect://" + onionAddress + ":8080?cert=" + cert + "&macaroon=" + macaroon;
-            Log.i(TAG, "uri is " + uri);
-
-
-            JSONObject json = new JSONObject();
-
-            try {
-                json.put("uri", uri);
-
-
-                callback.invoke(json.toString());
-
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-
-        } catch (Exception e) {
-
-
-        }
-
-
-    }*/
 
 
     @ReactMethod
@@ -440,26 +387,6 @@ public class LNDMobileWrapper extends ReactContextBaseJavaModule {
 
 
     }
-    /*
-
-    String getMacaroon(String network, String format) {
-
-        String path = reactContext.getFilesDir() + "/data/chain/bitcoin/" + network + "/admin.macaroon";
-
-
-        File f = new File(path);
-
-            String macaroon = encodeFileToBase64(f);
-            Log.i(TAG, macaroon);
-            if (format.equals("hex")) {
-                byte[] decoded = java.util.Base64.getUrlDecoder().decode(macaroon);
-                return "0" + String.format("%05X", new BigInteger(1, decoded));
-            } else {
-                return macaroon;
-            }
-
-
-    }*/
 
     byte[] decodeBase64String(String str){
 
@@ -674,13 +601,12 @@ public class LNDMobileWrapper extends ReactContextBaseJavaModule {
         new Thread(makeHttpRequest).start();
 
     }
-
+    private void sendEventToReactFromAndroid(ReactContext reactContext, String eventName, @Nullable WritableMap params) {
+        reactContext.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class).emit(eventName, params);
+    }
     @ReactMethod
-    public void startLND(String startArgs, String config, boolean bootstrap, final Promise promise) {
+    public void startLND(String startArgs, String config, boolean bootstrap) {
 
-        Runnable startLndThread = new Runnable() {
-            @Override
-            public void run() {
 
         final File appDir =reactContext.getFilesDir();
 
@@ -718,15 +644,15 @@ public class LNDMobileWrapper extends ReactContextBaseJavaModule {
         class UnlockCallback implements Callback {
             @Override
             public void onError(Exception e) {
-                Log.i(TAG, "unlock err");
-                Log.d(TAG, "unlock err");
+                Log.i(TAG, "unlock err1");
+                Log.d(TAG, "unlock err2");
             }
 
             @Override
             public void onResponse(byte[] bytes) {
-                Log.i(TAG, "unlock started");
-                Log.d(TAG, "unlock started");
-                promise.resolve("unlocked");
+                Log.i(TAG, "unlock started1");
+                Log.d(TAG, "unlock started2");
+                sendEvent(reactContext, "Unlocked", null);
             }
         }
 
@@ -734,15 +660,15 @@ public class LNDMobileWrapper extends ReactContextBaseJavaModule {
         class RPCCallback implements Callback {
             @Override
             public void onError(Exception e) {
-                Log.i(TAG, "rpc callback err");
-                Log.d(TAG, "unlock started");
+                Log.i(TAG, "rpc callback error1");
+                Log.d(TAG, "rpc callback error2");
             }
 
             @Override
             public void onResponse(byte[] bytes) {
-                Log.i(TAG, "rpc callback started");
-                Log.d(TAG, "unlock started");
-                promise.resolve("rpc started");
+                Log.i(TAG, "rpc callback  started1");
+                Log.d(TAG, "rpc callback  started2");
+                sendEvent(reactContext, "RPCReady", null);
             }
         }
 
@@ -750,9 +676,7 @@ public class LNDMobileWrapper extends ReactContextBaseJavaModule {
                 android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND);
 
                 Lndmobile.start(args, new UnlockCallback(), new RPCCallback());
-            }
-        };
-        new Thread(startLndThread).start();
+
 
 
     }

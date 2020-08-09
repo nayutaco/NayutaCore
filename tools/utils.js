@@ -69,12 +69,13 @@ export async function SetUserPreferences(key, value) {
   return res;
 }
 
-export function GetLNDConf(network, backend, password, peers) {
+export function GetLNDConf(network, backend, password, peers, fixedPeer, tor) {
 
   var configString = "[Application Options]\n\n";
   configString += "maxbackoff=2s\n"
   configString += "debuglevel=info\n"
  
+  configString += "listen=localhost\n"
   configString += "listen=0.0.0.0:9739\n"//so it doesnt clash with other wallets
   //configString += "sync-freelist=0\n"
   configString += "rpclisten=127.0.0.1:10009\n"
@@ -85,6 +86,8 @@ export function GetLNDConf(network, backend, password, peers) {
   configString += "maxpendingchannels=2\n"
   configString += "\n[Bitcoin]\n\n"
   configString += "bitcoin.active=1\n"
+
+
   if (network == "testnet") {
     configString += "bitcoin.testnet=1\n"
   } else {
@@ -100,13 +103,24 @@ export function GetLNDConf(network, backend, password, peers) {
   }
 
   if (backend === "bitcoind") {
-    configString += "\n[bitcoind]\n\n"
+    configString += "\n[Bitcoind]\n\n"
     configString += "bitcoind.rpchost=localhost\n";
     configString += "bitcoind.rpcpass="+password+"\n";
     configString += "bitcoind.rpcuser=bitcoinrpc\n";
     configString += "bitcoind.zmqpubrawblock=tcp://127.0.0.1:28332\n"
     configString += "bitcoind.zmqpubrawtx=tcp://127.0.0.1:28333\n"
   }
+
+
+  if(tor === "true"){
+  configString += "\n[Tor]\n\n"
+  configString += "tor.active=true\n"
+  //configString += "tor.socks=127.0.0.1:9050\n"
+  configString += "tor.streamisolation=true\n"
+  configString += "tor.v3=true\n"
+
+  }
+ 
 
   configString += "\n[Routing]\n\n"
   configString += "routing.assumechanvalid=1\n"
@@ -131,10 +145,14 @@ export function GetLNDConf(network, backend, password, peers) {
 
   if (backend === "neutrino") {
     configString += "\n[Neutrino]\n\n"
-
+console.log("fixed peer",fixedPeer);
+    if( fixedPeer === ""){
     peers.forEach(aPeer=> {
       configString += "neutrino.addpeer=" +aPeer + "\n"; 
     });
+  }else{
+    configString += "neutrino.connect=" + fixedPeer + "\n"; 
+  }
     
        
     if (network === "testnet") {
@@ -156,8 +174,7 @@ export function GetBitcoinConf(network, password, maxMemory) {
   config += "listen=1\n";
   config += "disablewallet=1\n";
 
-  config += network + "=1\n";
-
+  config += network + "=1\n"; 
   config += "prune=550\n";
   config += "upnp=0\n";
   config += "blocksonly=1\n";
@@ -165,7 +182,7 @@ export function GetBitcoinConf(network, password, maxMemory) {
   config += "rpcpassword="+password+"\n";
   config += "rpcuser=bitcoinrpc\n";
   config += "server=1\n";
-
+  config += "maxuploadtarget=0\n";
   console.log("Max memory is",maxMemory);
   
   
@@ -197,5 +214,16 @@ export function TimeoutPromise(timeout, err, promise) {
     promise.then(resolve,reject);
     setTimeout(reject.bind(null,err), timeout);
   });
+}
+
+
+export function IsJSON(jsonStr) {
+  if (/^[\],:{}\s]*$/.test(jsonStr.replace(/\\["\\\/bfnrtu]/g, '@').
+    replace(/"[^"\\\n\r]*"|true|false|null|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?/g, ']').
+    replace(/(?:^|:|,)(?:\s*\[)+/g, ''))) {
+    return true;
+  }
+
+  return false;
 }
  

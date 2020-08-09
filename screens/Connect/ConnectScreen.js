@@ -22,15 +22,15 @@ const lndMobileWrapperModule = NativeModules.LNDMobileWrapper;
 export default class ConnectScreen extends Component {
 
   state = {
-    lndConnectURI:"",
-    selectedIndex:0,
-    network:"",
+    lndConnectURI: "",
+    selectedIndex: 0,
+    network: "",
     showWaitMessage: false,
-    showQRCodeView: false, 
-    showQRCode: false, 
-    remoteRESTConnectURI:" ",
-    localRESTConnectURI:" ",
-    localGRPCConnectURI:" ",
+    showQRCodeView: false,
+    showQRCode: false,
+    remoteRESTConnectURI: " ",
+    localRESTConnectURI: " ",
+    localGRPCConnectURI: " ",
     qrCodeSize: Dimensions.get('window').width * 0.8,
     showInstructions: true
 
@@ -42,7 +42,7 @@ export default class ConnectScreen extends Component {
 
 
   }
- 
+
   hideInstructions = async () => {
     this.setState({ showInstructions: false })
   }
@@ -50,70 +50,72 @@ export default class ConnectScreen extends Component {
     this.setState({ showInstructions: true })
   }
   getLNDConnectURI() {
-    const {network } = this.state;
+    const { network } = this.state;
 
     var that = this;
-    CustomLog("network is",network);
+    CustomLog("network is", network);
     lndMobileWrapperModule.getLNDConnectURI(network, (fromJavaCode) => {
-      CustomLog("got uri",fromJavaCode);
+      CustomLog("got uri", fromJavaCode);
       let res = JSON.parse(fromJavaCode);
       CustomLog("getLNDConnectURI", res);
 
       let remoteRESTConnectURI = res.uri;
- 
+
       var localConnectURIParts = remoteRESTConnectURI.split("?");
 
       var cert = localConnectURIParts[1];
-      cert =cert.replace("==","");
-      cert = cert.replace(/\+/g,"-");
-      cert = cert.replace(/\//g,"_");
+      cert = cert.replace("==", "");
+      cert = cert.replace(/\+/g, "-");
+      cert = cert.replace(/\//g, "_");
 
-      var localGRPCConnectURI = "lndconnect://127.0.0.1:10009?"+cert;
-     
- 
-      var localRESTConnectURI = "lndconnect://127.0.0.1:8080?"+cert;
-    
-       
-      that.setState({remoteRESTConnectURI:remoteRESTConnectURI, localRESTConnectURI:localRESTConnectURI, localGRPCConnectURI:localGRPCConnectURI});
+      var localGRPCConnectURI = "lndconnect://127.0.0.1:10009?" + cert;
+
+
+      var localRESTConnectURI = "lndconnect://127.0.0.1:8080?" + cert;
+
+
+      that.setState({ remoteRESTConnectURI: remoteRESTConnectURI, localRESTConnectURI: localRESTConnectURI, localGRPCConnectURI: localGRPCConnectURI });
 
 
     })
   }
 
-  showQRCodeView(type){
+  showQRCodeView(type) {
 
-    const {remoteRESTConnectURI,localRESTConnectURI, localGRPCConnectURI} = this.state;
-    CustomLog("type is",type);
-   
-    if(type == "rest-local"){
-      CustomLog("rest local",localRESTConnectURI);
-      this.setState({ lndConnectURI: localRESTConnectURI, showQRCodeView:true});
+    const { remoteRESTConnectURI, localRESTConnectURI, localGRPCConnectURI } = this.state;
+    CustomLog("type is", type);
+
+    if (type == "rest-local") {
+      CustomLog("rest local", localRESTConnectURI);
+      this.setState({ lndConnectURI: localRESTConnectURI });
+      this.writeToClipboard();
     }
-    else if(type == "grpc-local"){ 
-      CustomLog("grpc local",localGRPCConnectURI);
-      this.setState({ lndConnectURI:localGRPCConnectURI, showQRCodeView:true});
-    } 
-    else if(type == "rest-remote"){ 
-      CustomLog("rest remote",remoteRESTConnectURI);
-      this.setState({ lndConnectURI:remoteRESTConnectURI, showQRCodeView:true});
+    else if (type == "grpc-local") {
+      CustomLog("grpc local", localGRPCConnectURI);
+      this.setState({ lndConnectURI: localGRPCConnectURI });
+      this.writeToClipboard();
+    }
+    else if (type == "rest-remote") {
+      CustomLog("rest remote", remoteRESTConnectURI);
+      this.setState({ showQRCode: true, lndConnectURI: remoteRESTConnectURI, showQRCodeView: true });
     }
     let that = this;
-    setTimeout(function(){
-      that.setState({showQRCode:true});
-    },100);
+    setTimeout(function () {
+
+    }, 100);
 
 
   }
 
 
-  closeQRCodeView(){
+  closeQRCodeView() {
 
-    
-      this.setState({ showQRCode:false, showQRCodeView:false});
-   
+
+    this.setState({ showQRCode: false, showQRCodeView: false });
+
 
   }
-  
+
   writeToClipboard = async () => {
     await Clipboard.setString(this.state.lndConnectURI);
     alert('Copied to Clipboard');
@@ -121,20 +123,20 @@ export default class ConnectScreen extends Component {
   };
 
   async componentDidMount() {
-    const network = await GetUserPreferences("network","mainnet");
-    this.setState({network:network})
+    const network = await GetUserPreferences("network", "mainnet");
+    this.setState({ network: network })
     this.load()
     this.props.navigation.addListener('willFocus', this.load)
 
   }
   load = () => {
- 
+
     if (GetGlobalInfo().canShowConnectCode) {
       this.setState({ showWaitMessage: false });
-      if(this.state.lndConnectURI.length == 0){
-    
+      if (this.state.lndConnectURI.length == 0) {
 
-      this.getLNDConnectURI();
+
+        this.getLNDConnectURI();
       }
     } else {
       this.setState({ showWaitMessage: true });
@@ -142,7 +144,7 @@ export default class ConnectScreen extends Component {
 
   }
 
-  render() { 
+  render() {
     let logoFromFile = require('../../assets/images/nayutaLogo.png');
     const { showInstructions, lndConnectURI, qrCodeSize, showWaitMessage, showQRCodeView, showQRCode } = this.state;
 
@@ -155,76 +157,76 @@ export default class ConnectScreen extends Component {
 
               <View style={[styles.localConnect]} >
 
-              
+
                 <Text style={[styles.title]}>Local Connect</Text>
-              <Text style={[styles.subTitle]}>connect 3rd party apps running on the same device</Text>
-              <View style={[styles.iconsView]}>
-              <TouchableOpacity onPress={() => this.showQRCodeView("rest-local")}>
-              <Image style={[styles.appIcon]} source={require('../../assets/images/zeusIcon.png')} />
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => this.showQRCodeView("grpc-local")}>
-              <Image style={[styles.appIcon]} source={require('../../assets/images/zap-icon-128.png')} />
-              </TouchableOpacity>
+                <Text style={[styles.subTitle]}>connect 3rd party apps running on the same device</Text>
+                <View style={[styles.iconsView]}>
+                  <TouchableOpacity onPress={() => this.showQRCodeView("rest-local")}>
+                    <Image style={[styles.appIcon]} source={require('../../assets/images/zeusIcon.png')} />
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={() => this.showQRCodeView("grpc-local")}>
+                    <Image style={[styles.appIcon]} source={require('../../assets/images/zap-icon-128.png')} />
+                  </TouchableOpacity>
+                </View>
+
+                <Text style={[styles.title]}>Remote Connect</Text>
+                <Text style={[styles.subTitle]}>connect 3rd party apps running on another device</Text>
+                <View style={[styles.iconsView]}>
+                  <TouchableOpacity onPress={() => this.showQRCodeView("rest-remote")}>
+                    <Image style={[styles.appIcon]} source={require('../../assets/images/zeusIcon.png')} />
+                  </TouchableOpacity>
+                </View>
+
               </View>
 
-              <Text style={[styles.title]}>Remote Connect</Text>
-              <Text style={[styles.subTitle]}>connect 3rd party apps running on another device</Text>
-              <View style={[styles.iconsView]}>
-              <TouchableOpacity onPress={() => this.showQRCodeView("rest-remote")}>
-              <Image style={[styles.appIcon]} source={require('../../assets/images/zeusIcon.png')} /> 
-              </TouchableOpacity>
-              </View>
 
-              </View>
+              {showQRCodeView &&
+
+                <View style={[styles.qrCodeView]}>
 
 
-             {showQRCodeView &&
-             
-             <View style={[styles.qrCodeView]}>
-                
-                
-                {!showQRCode &&
+                  {!showQRCode &&
                     <ActivityIndicator size='large' style={[styles.spinner]} />
-                }
+                  }
 
-{showQRCode &&
-<View>
-  <TouchableOpacity onPress={this.writeToClipboard}>
-                    <QRCode style={[styles.qrCode]}
-                      size={qrCodeSize}
-                      value={lndConnectURI}
-                      logo={logoFromFile}
-                      logoSize={100}
-                      logoBackgroundColor='transparent'
-                      onPress={this.writeToClipboard}
-                    />
-                 
-
-                </TouchableOpacity>
-  
-
-                <View>
-               
-                <View style={[styles.qrCodeInstructions]} >
-                  <Text style={[styles.subtitle]}>tap to copy</Text>
-                 
-                  </View> 
-                  <View style={[styles.qrCodeInstructions]} >
-
-                  <TouchableOpacity style={[styles.roundedButton]} onPress={this.closeQRCodeView.bind(this)}>
-                      <Text style={styles.simpleButtonText}>close</Text>
-                    </TouchableOpacity>
-                    </View> 
+                  {showQRCode &&
+                    <View>
+                      <TouchableOpacity onPress={this.writeToClipboard}>
+                        <QRCode style={[styles.qrCode]}
+                          size={qrCodeSize}
+                          value={lndConnectURI}
+                          logo={logoFromFile}
+                          logoSize={100}
+                          logoBackgroundColor='transparent'
+                          onPress={this.writeToClipboard}
+                        />
 
 
-                
-
-                   
-  </View>
-  </View>}
+                      </TouchableOpacity>
 
 
-              </View>}
+                      <View>
+
+                        <View style={[styles.qrCodeInstructions]} >
+                          <Text style={[styles.subtitle]}>tap to copy</Text>
+
+                        </View>
+                        <View style={[styles.qrCodeInstructions]} >
+
+                          <TouchableOpacity style={[styles.roundedButton]} onPress={this.closeQRCodeView.bind(this)}>
+                            <Text style={styles.simpleButtonText}>close</Text>
+                          </TouchableOpacity>
+                        </View>
+
+
+
+
+
+                      </View>
+                    </View>}
+
+
+                </View>}
 
             </View>
           }

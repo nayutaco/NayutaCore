@@ -7,8 +7,9 @@ import * as Keychain from 'react-native-keychain';
 import { encrypt } from 'react-native-simple-encryption';
 import { AnimatedCircularProgress } from 'react-native-circular-progress';
 import DeviceInfo from 'react-native-device-info';
- 
-import { SetGlobalInfo, GetGlobalInfo, CustomLog, CustomError, GetBitcoinConf, GetLNDConf, SetUserPreferences, GetUserPreferences, GetNodeFromStartUpData, GetTestnetPeers, TimeoutPromise } from '../../tools/utils';
+
+import { NavigationEvents } from 'react-navigation';
+import { IsJSON, SetGlobalInfo, GetGlobalInfo, CustomLog, CustomError, GetBitcoinConf, GetLNDConf, SetUserPreferences, GetUserPreferences, GetNodeFromStartUpData, GetTestnetPeers, TimeoutPromise } from '../../tools/utils';
 import Timeline from 'react-native-timeline-flatlist'
 import BitsAnimation from "../../misc/BitsAnimation";
 import {
@@ -20,10 +21,10 @@ import {
   View,
   Animated,
   SafeAreaView,
-  FlatList,
-  Alert
+  FlatList, 
+  BackHandler,
+  DeviceEventEmitter
 } from 'react-native';
-
 const onionOff = require('../../assets/images/onionOff.png');
 const onionOn = require('../../assets/images/onion.png');
 const lightningOff = require('../../assets/images/boltOff.png');
@@ -35,25 +36,40 @@ const timelineProviderImage = require('../../assets/images/99Bitcoins.png');
 
 const lndMobileWrapperModule = NativeModules.LNDMobileWrapper;
 const androidCoreWrapperModule = NativeModules.AndroidCoreWrapper;
- 
+
 
 
 function Item({ block }) {
   return (
     <View style={styles.blockCell}>
-      <View style={styles.blockCellInner}> 
-      <Text style={styles.blockTitle}>block: {block.height}</Text>
-      <Text style={styles.blockTitle}>time: {block.time}</Text>
-      <Text style={styles.blockTitle}>txs: {block.txs}</Text>
-      <Text style={styles.blockTitle}>volume: {  block.total_out / 100000000} BTC</Text>
-    
-      <Text style={styles.blockTitle}>size: {block.total_size / 1000} kb</Text>
-       
+      <View style={styles.blockCellInner}>
+        <Text style={styles.blockTitle}>#{block.height}</Text>
+
+        <View style={styles.blockCellInfo}>
+
+          <View style={styles.blockInfoRow}>
+            <Text style={styles.blockSubTitle}>time:</Text>
+            <Text style={styles.blockSubTitleText}> {block.time}</Text>
+          </View>
+
+
+          <View style={styles.blockInfoRow}>
+            <Text style={styles.blockSubTitle}>txs:</Text>
+            <Text style={styles.blockSubTitleText}>{block.txs}</Text>
+          </View>
+
+          <View style={styles.blockInfoRow}><Text style={styles.blockSubTitle}>segwit txs:</Text><Text style={styles.blockSubTitleText}>{block.swtxs}</Text></View>
+          <View style={styles.blockInfoRow}><Text style={styles.blockSubTitle}>volume:</Text><Text style={styles.blockSubTitleText}>{block.total_out / 100000000} BTC</Text></View>
+          <View style={styles.blockInfoRow}><Text style={styles.blockSubTitle}>size:</Text><Text style={styles.blockSubTitleText}>{block.total_size / 1000000} mb</Text></View>
+        </View>
       </View>
     </View>
   );
 }
 class HomeScreen extends Component {
+  hiddenServiceStarted = false;
+  didShowForkAlert = false;
+  walletExists = false;
   isShowingBlock = false;
   lastBitcoinGetInfo = null;
   LNDStarted = false;
@@ -63,18 +79,23 @@ class HomeScreen extends Component {
   didStartLND = false;
   didStartBitcoind = false;
   didStartRestart = false;
+  stoppedBitcoind = false;
+  stoppedAll = false;
+
   state = {
-    syncBlocksData:[],
-    currentBitcoinDBlock:0,
-    showClock:false,
-    alwaysNeutrinoBackend:false,
-    showTimeLine:true,
-    showFullSync:false,
-    currentBlockHash:"",
-    maxMemory:0,
-    stoppedAll:false,
+    debugText: "debug info",
+    lndBlocks: {},
+    bitcoindBlocks: {},
+    syncBlocksData: [],
+    currentBitcoinDBlock: 0,
+    showClock: false,
+    alwaysNeutrinoBackend: false,
+    showTimeLine: true,
+    showFullSync: false,
+    currentBlockHash: "",
+    maxMemory: 0,
     hiddenServiceStarting: false,
-    startingServices: false, 
+    startingServices: false,
     showStop: false,
     data: [],
     didSetFirstData: false,
@@ -90,8 +111,8 @@ class HomeScreen extends Component {
     restURL: "https://127.0.0.1:8080",
     network: "testnet",//"mainnet",
     bitcoinDStarted: false,
-    bitcoinDTorDownloaded: false, 
-    timelineProviderImage:timelineProviderImage,
+    bitcoinDTorDownloaded: false,
+    timelineProviderImage: timelineProviderImage,
     onionImage: onionOff,
     lightningImage: lightningOff,
     bitcoindImage: bitcoindOff,
@@ -107,24 +128,39 @@ class HomeScreen extends Component {
     headers: 0,
     showProgress: true,
     progressSize: Dimensions.get('window').width * 0.38,
-    recentBlocks:[]
+    recentBlocks: []
   }
   constructor(props) {
     super(props);
 
-     
-   
-    
   }
 
-  formatTime(timestamp){ 
-    var date = new Date(timestamp ); 
+
+  _onBlurr = () => {
+    BackHandler.removeEventListener('hardwareBackPress',
+      this._handleBackButtonClick);
+  }
+
+  _onFocus = () => {
+    BackHandler.addEventListener('hardwareBackPress',
+      this._handleBackButtonClick);
+  }
+
+  _handleBackButtonClick = () => true
+
+
+  formatTime(timestamp) {
+
+    var dateObj = new Date(timestamp * 1000);
 
     var monthArray = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
+    var mins = dateObj.getMinutes();
+    if (mins < 10) {
+      mins = "0" + mins;
+    }
+    return dateObj.getDate() + " " + monthArray[dateObj.getMonth()] + " " + dateObj.getFullYear() + " " + dateObj.getHours() + ":" + mins;
+  }
 
-    return date.getDate()+ " " +monthArray[date.getMonth()]+" " +date.getFullYear();
-   }
-  
   bytesToHex(bytes) {
     for (var hex = [], i = 0; i < bytes.length; i++) {
       var current = bytes[i] < 0 ? bytes[i] + 256 : bytes[i];
@@ -153,13 +189,13 @@ class HomeScreen extends Component {
           resolve(true)
         });
       } else {
-        console.log('No credentials stored');
+        CustomLog('No credentials stored');
         return new Promise(reject => {
           reject(false)
         });
       }
     } catch (error) {
-      console.log("Keychain couldn't be accessed!", error);
+      CustomLog("Keychain couldn't be accessed!", error);
       return new Promise(reject => {
         reject(false)
       });
@@ -168,7 +204,7 @@ class HomeScreen extends Component {
 
   }
 
- 
+
 
   async getPassword() {
 
@@ -186,14 +222,14 @@ class HomeScreen extends Component {
         });
 
       } else {
-        console.log('No credentials stored');
+        CustomLog('No credentials stored');
 
         return new Promise(reject => {
           reject(null)
         });
       }
     } catch (error) {
-      console.log("Keychain couldn't be accessed!", error);
+      CustomLog("Keychain couldn't be accessed!", error);
       return new Promise(reject => {
         reject("error")
       });
@@ -203,52 +239,58 @@ class HomeScreen extends Component {
 
   }
 
-  TriggerBlock(response){
-  if(this.isShowingBlock == false){
-    this.isShowingBlock = true;
-this.setState({currentBlockHash:response.bestblockhash})
-//androidCoreWrapperModule.localNotification("Block "+response.blocks,response.bestblockhash);
-setTimeout(()=>{
-this.setState({currentBlockHash:""})
-this.isShowingBlock = false;
-},20000) 
+  TriggerBlock(response) {
+    if (this.isShowingBlock == false) {
+      this.isShowingBlock = true;
+      this.setState({ currentBlockHash: response.bestblockhash })
 
-  }
+      setTimeout(() => {
+        this.setState({ currentBlockHash: "" })
+        this.isShowingBlock = false;
+      }, 20000)
+
+    }
 
   }
   async componentDidMount() {
-    this.setState({showTimeLine:false,showFullSync:true})
 
-    
-  
- /*
-    this.hiddenServiceStarted = true;
-     this.LNDStarted = true;
-     this.didShowConnect = false;
-     this.ShowConnectButton();
-    this.props.navigation.navigate('Connect');
-    return; */
+    //start listners for LND unlocked and RPC ready events
+    DeviceEventEmitter.addListener('Unlocked', async (e) => {
+      CustomLog("Received unlocked event");
+      if (this.walletExists) {
+        this.setState({ statusText2: "unlocking LND wallet..." })
+        this.unlockLNDWallet();
+      } else {
+        this.setState({ statusText2: "creating LND wallet..." })
+        this.createNewLNDWallet();
+      }
+    });
+    DeviceEventEmitter.addListener('RPCReady', async (e) => {
+      CustomLog("Received rpcready event");
+      this.continueLoad();
+    });
+
     let mem = await DeviceInfo.getTotalMemory();
-    CustomLog("memory is "+mem);
+
+    CustomLog("memory is " + mem);
     const history = require('./../../assets/bitcoin_history.json');
-    
+
     var globalInfo = GetGlobalInfo();
 
     const network = await GetUserPreferences("network", "mainnet");
 
     CustomLog("network is", network);
 
-    this.setState({ data: history,maxMemory:mem,network: network });
+    this.setState({ data: history, maxMemory: mem, network: network });
 
     globalInfo.network = network;
 
     SetGlobalInfo(globalInfo);
-
-   
-
+ 
     await this.startProcess();
 
   }
+
 
   async startProcess() {
     var that = this;
@@ -268,9 +310,7 @@ this.isShowingBlock = false;
       let saved = await that.savePassword(password);
 
       if (saved) {
-
-        console.log("password create", password)
-
+        CustomLog("password create")
         that.setState({ password: password })
         await that.getBackend();
 
@@ -280,7 +320,7 @@ this.isShowingBlock = false;
       }
 
     } else {
-      console.log("password unlock", password)
+      CustomLog("password unlock")
       that.setState({ password: password })
       await that.getBackend();
     }
@@ -289,34 +329,43 @@ this.isShowingBlock = false;
   }
 
   async getBackend() {
-    const { network, password , maxMemory } = this.state;
+    const { network, password, maxMemory } = this.state;
 
     var that = this;
 
     androidCoreWrapperModule.setUp(GetBitcoinConf(network, password, maxMemory))
- 
 
     let backend = await GetUserPreferences("backend");
 
     var alwaysNeutrinoBackendTmp = await GetUserPreferences("alwaysNeutrinoBackend");
 
-    if(alwaysNeutrinoBackendTmp === "true"){
+    if (alwaysNeutrinoBackendTmp === "true") {
       backend = "neutrino";
     }
-
+    backend = "neutrino";
     if (backend != undefined || backend != null) {
       that.setState({ backend: backend })
     }
-    console.log("backend ", that.state.backend);
+    CustomLog("backend ", that.state.backend);
+ 
+
+    this.loadBitcoinServices();
 
 
-    that.setState({ alwaysNeutrinoBackend:true, statusText1: "starting...", showSyncProgress: false, showStatus: true, statusText2: "getting start up info..." })
+    that.setState({ alwaysNeutrinoBackend: true, statusText1: "starting...", showSyncProgress: false, showStatus: true, statusText2: "getting start up info..." })
 
+
+
+  }
+
+  loadStartUpInfo() {
+
+    const { network } = this.state;
     var baseUrl = "https://wallet.nayuta.co/wallet/api/v1/";
     if (network === "testnet") {
       baseUrl = "https://shop.nayuta.co/wallet/api/v1/"
     }
-    
+    var that = this;
     try {
 
       TimeoutPromise(15000, new Error('Timed Out!'), fetch(baseUrl + "nodeinfo"))
@@ -341,17 +390,16 @@ this.isShowingBlock = false;
 
       alert(e);
     }
-
   }
 
-  showInitialMessages(){
+  showInitialMessages() {
     let tempData = this.state.activeData;
 
 
     tempData.unshift({ time: 'Welcome', title: '', description: 'The app will perform a quick initial sync which should take a few minutes to complete and you can start connecting your 3rd party apps' },
     );
 
-    if(this.didStartBitcoind == false){
+    if (this.didStartBitcoind == false) {
       this.setState({ activeData: tempData });
     }
 
@@ -361,15 +409,15 @@ this.isShowingBlock = false;
       tempData.unshift({ time: 'A few things', title: '', description: 'After this the app will perform a full validation which will take several days to complete' },
       );
 
-      if(that.didStartBitcoind == false){
-      that.setState({ activeData: tempData });
+      if (that.didStartBitcoind == false) {
+        that.setState({ activeData: tempData });
       }
 
       setTimeout(function () {
         tempData.unshift({ time: 'After that', title: '', description: 'Make sure to check back during this longer sync, on this time line the app will display the bitcoin price and historical events that occured at each block' },
         );
-        if(that.didStartBitcoind == false){
-        that.setState({ activeData: tempData });
+        if (that.didStartBitcoind == false) {
+          that.setState({ activeData: tempData });
         }
 
       }, 4000);
@@ -383,77 +431,64 @@ this.isShowingBlock = false;
     var that = this;
     CustomLog("res", responseJson)
 
-    if (responseJson === undefined) {
-      CustomLog("json is null, setting mock data")
+    if (responseJson === undefined || responseJson.blockHeight == undefined) {
+      CustomLog("api error, setting mock data")
       responseJson = { blockHeight: -1 };
     }
 
     that.setState({ startUpData: responseJson });
 
-    if (that.state.backend === "neutrino") {
-      that.setState({ statusText1: "starting...", showSyncProgress: false, showStatus: true, statusText2: "starting LND..." })
 
-      that.startLNDServices()
-    } else {
-      that.setState({ statusText1: "starting...", showSyncProgress: false, showStatus: true, statusText2: "starting bitcoinD..." })
+    that.setState({ statusText1: "starting...", showSyncProgress: false, showStatus: true, statusText2: "starting LND..." })
 
-      that.loadBitcoinServices();
-    }
+    that.startLNDServices()
+
 
 
   }
 
-  checkIfLNDIsRunning(info){
-    try{
+  checkIfLNDIsRunning(info) {
+    try {
       var jsonRes = JSON.parse(info);
-      if(jsonRes.error == undefined){
+      if (jsonRes.error == undefined) {
         return true
-      } 
-  }catch(e){ 
-  }
-  return false;
+      }
+    } catch (e) {
+    }
+    return false;
   }
   async startLNDServices() {
     const { network, restURL } = this.state;
     let fromJavaCode = await lndMobileWrapperModule.checkIfWalletExists(network);
-    console.log("wallet exists", fromJavaCode);
+    CustomLog("wallet exists", fromJavaCode);
     let res = JSON.parse(fromJavaCode);
-
+    this.walletExists = res.exists;
 
     let url = restURL + "/v1/getinfo";
     let res2 = await lndMobileWrapperModule.makeHttpRequest(url);
 
     CustomLog("getInfoResCheckIfRunning", res2);
- 
+
     var isRunning = this.checkIfLNDIsRunning(res2);
- 
+
 
     CustomLog("lnd is running ", isRunning);
     if (isRunning) {
       this.setState({ statusText2: "LND already running..." })
       this.startGetInfo();
     } else {
-      let startRes = await this.startLND()
-      console.log("start lnd res", startRes);
-
-      if (res.exists) {
-        this.setState({ statusText2: "unlocking LND wallet..." })
-        await this.unlockLNDWallet();
-      } else {
-        this.setState({ statusText2: "creating LND wallet..." })
-        await this.createNewLNDWallet();
-      }
+      this.startLND() 
     }
 
     this.showInitialMessages();
 
   }
 
-  setFirstData(rawDate) { 
+  setFirstData(rawDate) {
 
-if(rawDate == undefined){
-  return;
-}
+    if (rawDate == undefined) {
+      return;
+    }
     var rawDateObject = new Date(rawDate.year, rawDate.month, rawDate.day);
 
 
@@ -515,7 +550,7 @@ if(rawDate == undefined){
   }
   addNewEvent(rawDate) {
 
-    if(rawDate == undefined){
+    if (rawDate == undefined) {
       return;
     }
 
@@ -527,10 +562,10 @@ if(rawDate == undefined){
     var monthArray = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
 
 
-    console.log("rawdata", rawDate);
     var tempData = this.state.activeData;
 
     for (var key in this.state.data) {
+
       var eventDateParts = key.split(" ");
 
       let year = parseInt(eventDateParts[2]);
@@ -541,7 +576,7 @@ if(rawDate == undefined){
       let prospectiveEvent = { time: this.formatDate(key), title: anEvent[0] + '\n' + anEvent[1], description: anEvent[2] };
 
       if (year == rawDate.year && month == rawDate.month && day == rawDate.day) {
-        console.log("days match");
+        CustomLog("days match");
         if (!this.isEventAdded(prospectiveEvent)) {
           tempData.unshift(prospectiveEvent)
           this.setState({ activeData: tempData });
@@ -556,51 +591,80 @@ if(rawDate == undefined){
 
   }
 
-  ShowConnectButton(){ 
+  ShowConnectButton() {
     if (this.hiddenServiceStarted == true && this.LNDStarted == true && this.didShowConnect == false) {
       this.didShowConnect = true;
-    this.setState({ didSetConnect: true }); 
-    var globalInfo = GetGlobalInfo();
-    globalInfo.canShowConnectCode = true;
-    SetGlobalInfo(globalInfo);
+      this.setState({ didSetConnect: true });
+      var globalInfo = GetGlobalInfo();
+      globalInfo.canShowConnectCode = true;
+      SetGlobalInfo(globalInfo);
 
     }
   }
   async loadBitcoinServices() {
 
-    const { syncBlocksData, stoppedAll, hiddenServiceStarting, backend,didStartLND, alwaysNeutrinoBackend} = this.state;
+    const { bitcoinDStarted, currentBitcoinDBlock, bitcoindBlocks, syncBlocksData, hiddenServiceStarting, backend, didStartLND, alwaysNeutrinoBackend } = this.state;
     var that = this;
     that.didStartBitcoind = true;
-    const eventEmitter = new NativeEventEmitter(NativeModules.ToastExample);
+    eventEmitter = new NativeEventEmitter(NativeModules.ToastExample);
     CustomLog("loading bitcoin services");
 
-    eventEmitter.addListener('event', (event) => {
-
-
-      if( stoppedAll){
-        return;
-      }
-
-      if (that.gettingBlockchainInfo == false) {
-        that.gettingBlockchainInfo = true;
-        setTimeout(function () {
-          that.gettingBlockchainInfo = false;
-          that.getBlockchainInfo();
-        }, that.getBlockchainInfoIntervalTime);
-
-      }
-
+    eventEmitter.addListener('event', async (event) => {
 
       CustomLog("event", event)
       try {
         var jsonData = JSON.parse(event.data);
+
+        if (jsonData.debug != undefined) {
+
+          that.setState({ debugText: jsonData.debug })
+
+        }
+        if (jsonData.response === "wifi off") {
+
+          let requireWifi = await GetUserPreferences("unlimitedMode") === "TRUE" ? false : true;
+
+          CustomLog("require wifi - ", requireWifi);
+          if (requireWifi) {
+
+            that.setState({ bitcoindImage: bitcoindOff, bitcoinDStarted: false })
+            that.setState({ statusText1: "waiting for wifi", statusText2: "once your device is connected to wifi bitcoind sync will start" });
+
+            that.stoppedBitcoind = true;
+          }
+
+
+        } else if (jsonData.response === "wifi on") {
+
+          if (that.stoppedBitcoind) {
+            that.setState({ statusText1: "wifi connected", statusText2: "waiting for the OS to start bitcoind, (this may take sometime)" });
+            let requireWifi = await GetUserPreferences("unlimitedMode") === "TRUE" ? false : true;
+
+            androidCoreWrapperModule.registerBackgroundSync(requireWifi);
+          }
+          that.stoppedBitcoind = false;
+        }
+
+        if (that.stoppedBitcoind) {
+
+          setTimeout(function () {
+            that.getBlockchainInfo();
+          }, that.getBlockchainInfoIntervalTime);
+          return;
+        }
+
         CustomLog("eventJSON", jsonData)
         if (jsonData.error == true) {
           that.setState({ bitcoindImage: bitcoindOff, bitcoinDStarted: false })
-          if (jsonData.response == "rpc") {
+          if (jsonData.response === "rpc") {
 
             if (jsonData.res !== "no value") {
-              that.setState({ statusText2: jsonData.res });
+
+              if (jsonData.res === "Rewinding blocks..." || jsonData.res === "Loading block index..." || jsonData.res === "Verifying blocks...") {
+                that.setState({ statusText1: "bitcoind starting", statusText2: jsonData.res });
+              } else {
+                that.setState({ statusText1: "please wait..", statusText2: jsonData.res });
+              }
             }
 
           } else if (jsonData.response.indexOf("-reindex") != -1) {
@@ -611,34 +675,38 @@ if(rawDate == undefined){
             alert(jsonData.res);
           }
           else {
-            alert(jsonData.response);
+            if (bitcoinDStarted) {
+              alert(jsonData.response);
+            }
           }
         } else {
 
 
 
           if (jsonData.response === "downloaded") {
-
-            that.startBitcoinD();
+            that.startTor();
           }
           else if (jsonData.response === "download") {
-
+              //do nothing for now
           }
           else if (jsonData.response == "already started") {
-
-
+              //do nothing for now
           }
           else if (jsonData.response == "hidden service started") {
+            CustomLog("hidden service started, show connect button " + that.hiddenServiceStarted);
 
+            if (that.hiddenServiceStarted == false) {
+              CustomLog("loading from api");
+              that.loadStartUpInfo();
+            }
 
-          
             that.hiddenServiceStarted = true;
-             
-              that.ShowConnectButton();
 
-          
+            that.ShowConnectButton();
 
-            
+
+
+
             that.setState({ onionImage: onionOn, hiddenServiceStarting: true });
 
 
@@ -658,120 +726,112 @@ if(rawDate == undefined){
           }
           else if (jsonData.response == "rpc") {
 
-            if(jsonData.command == "getblockchaininfo"){
-
-            if (that.state.hiddenServiceStarting == false) {
-
-              that.setState({ hiddenServiceStarting: true });
-
-              CustomLog("starting tor ", that.state.hiddenServiceStarting)
-
-              that.startTor();
-
-            } else {
-
-              CustomLog("tor all ready started")
-
-            }
-
-            that.setState({ bitcoindImage: bitcoindOn, bitcoinDStarted: true })
-            var headersMax = that.state.startUpData.blockHeight;
-            var response = JSON.parse(jsonData.res);
-            if (response.blocks == 0) {
+            if (jsonData.command == "getblockchaininfo") {
 
 
-              CustomLog("headersMax ", headersMax);
+
+              that.setState({ bitcoindImage: bitcoindOn, bitcoinDStarted: true })
+              var headersMax = that.state.startUpData.blockHeight;
+              var response = JSON.parse(jsonData.res);
+              if (response.blocks == 0) {
 
 
-              var val = Math.floor((response.headers / headersMax) * 100);
-              var headers = response.headers + "/" + headersMax;
+                CustomLog("headersMax ", headersMax);
 
 
-              CustomLog("val ", val);
-              if (headersMax == -1) {
-                that.setState({ statusText1: "Downloading headers", statusText2: response.headers, percentage: "", syncProgress: 0 });
-
-              } else {
-                that.setState({ statusText1: "Downloading headers", statusText2: headers, percentage: val + "%", syncProgress: val });
+                var val = Math.floor((response.headers / headersMax) * 100);
+                var headers = response.headers + "/" + headersMax;
 
 
-              }
+                CustomLog("val ", val);
+                if (headersMax == -1) {
+                  that.setState({ statusText1: "Downloading headers", statusText2: response.headers, percentage: "", syncProgress: 0 });
 
-
-            } else {
-              
-              that.setState({ currentBitcoinDBlock :response.blocks});
-
-              var res = this.formatSyncData(
-                parseFloat(response.verificationprogress + "") * 100,
-                response.blocks,
-                headersMax
-              );
-
-              if (that.state.didSetFirstData == false) {
-
-                that.setState({ didSetFirstData: true });
-
-                that.setFirstData(res.dateRaw)
-              } else {
-                that.addNewEvent(res.dateRaw)
-              }
-             
-              if (res.synced) {
- 
-               
-                let status2String = "current block\n" + response.blocks + "\n" + "difficulty\n" + response.difficulty;
-
-                that.setState({ percentage: "100%", statusText1: "Synced", statusText2: status2String, bitcoinDSynced: true });
-
-                if (backend === "neutrino" && that.didStartRestart == false && alwaysNeutrinoBackend == false) {//set backend to
-                  that.didStartRestart = true;
-                  that.setBackendToBitcoindAndRestart();
                 } else {
-                //  that.setState({showTimeLine:false,showClock:true})
-                  if(this.didStartLND == false){
+                  that.setState({ statusText1: "Downloading headers", statusText2: headers, percentage: val + "%", syncProgress: val });
 
-                  //  setInterval(()=>{
-                    //  this.TriggerBlock();
-                    //},60000)
-                    this.didStartLND = true; 
-                  that.startLNDServices()
-                  }
-
-                  if(this.lastBitcoinGetInfo != null){
-                    console.log("not null "+response.blocks+" "+ this.lastBitcoinGetInfo.blocks);
-                    if(response.blocks > this.lastBitcoinGetInfo.blocks){
-                      this.TriggerBlock(response);
-                    }
-                  }
-                  this.lastBitcoinGetInfo = response;
 
                 }
 
+
               } else {
 
-                that.setState({ statusText1: res.blocks, statusText2: res.date, percentage: res.percentage, syncProgress: res.val });
+                that.saveBitcoinDBlocks(response.blocks, response.bestblockhash);
+
+                that.setState({ currentBitcoinDBlock: response.blocks });
+
+                var res = this.formatSyncData(
+                  parseFloat(response.verificationprogress + "") * 100,
+                  response.blocks,
+                  headersMax
+                );
+
+                if (that.state.didSetFirstData == false) {
+
+                  that.setState({ didSetFirstData: true });
+
+                  that.setFirstData(res.dateRaw)
+                } else {
+                  that.addNewEvent(res.dateRaw)
+                }
+                if (res.synced) {
+
+                  if (response.blocks > 0) {
+                    CustomLog("getting last 10 blocks");
+                    for (var i = 0; i < 10; i++) {
+
+                      androidCoreWrapperModule.getBlockStats(response.blocks - i);
+
+                    }
+                  }
+                  let status2String = "current block\n" + response.blocks + "\n" + "difficulty\n" + response.difficulty;
+
+                  that.setState({ percentage: "100%", statusText1: "Synced", statusText2: status2String, bitcoinDSynced: true });
+
+
+                  that.setState({ showTimeLine: false, showFullSync: true })
+                  if (this.didStartLND == false) {
+
+                    this.didStartLND = true;
+                    that.startLNDServices()
+                  }
+
+                  this.lastBitcoinGetInfo = response;
+
+
+                } else {
+
+                  that.setState({ statusText1: res.blocks, statusText2: res.date, percentage: res.percentage, syncProgress: res.val });
+                }
               }
+
+            } else if (jsonData.command == "getblockstats") {
+              CustomLog("got block stats");
+              var obj = JSON.parse(jsonData.res);
+
+              if (that.containsBlock(syncBlocksData, obj) == false) {
+                CustomLog("added to array");
+                obj.time = that.formatTime(obj.time);
+                syncBlocksData.push(obj); 
+              }
+
+              var syncBlocksDataTmp = syncBlocksData;
+
+              syncBlocksDataTmp = syncBlocksDataTmp.sort((a, b) => (a.height < b.height) ? 1 : -1)
+
+              if (syncBlocksDataTmp.length > 40) {
+                syncBlocksDataTmp.pop();
+                CustomLog("popped array");
+              }
+              CustomLog("array length " + syncBlocksDataTmp.length);
+              that.setState({ syncBlocksData: syncBlocksDataTmp });
+
             }
 
-          }else if(jsonData.command == "getblockstats"){
 
-            var obj = JSON.parse(jsonData.res);
-            
-            if( that.containsBlock(syncBlocksData,obj) == false){
-
-              obj.time = that.formatTime(obj.time);
-            syncBlocksData.unshift(obj);
-
-            if(syncBlocksData.length > 10){
-              syncBlocksData.pop();
-            }
-            that.setState({  syncBlocksData:  syncBlocksData });
-          }
-              console.log(jsonData.command,obj.txs);
-          }
 
           }
+
         }
       } catch (e) {
         CustomError(e);
@@ -787,25 +847,49 @@ if(rawDate == undefined){
         that.setState({ statusText2: "downloading bitcoind and tor..." });
         androidCoreWrapperModule.startDownload();
       } else {
-        that.startBitcoinD();
+        that.startTor();
 
       }
     })
 
   }
 
-  containsBlock(array,obj){
-    for(var i = 0;i<array.length;i++){
+  containsBlock(array, obj) {
+    for (var i = 0; i < array.length; i++) {
       var arr = array[i];
-      if(arr.blockhash === obj.blockhash){
+      if (arr.blockhash === obj.blockhash) {
         return true;
       }
     }
     return false;
   }
   async startBitcoinD() {
-    this.setState({ bitcoinDTorDownloaded: true, bitcoinDStarted: true, statusText2: "starting bitcoind..." });
-    const isRunning = await androidCoreWrapperModule.checkIfServiceIsRunning("com.mandelduck.androidcore.ABCoreService");
+
+    if (this.state.hiddenServiceStarting == false) {
+
+      this.setState({ hiddenServiceStarting: true });
+
+      CustomLog("starting tor ", this.state.hiddenServiceStarting)
+
+      this.startTor();
+
+    } else {
+
+      CustomLog("tor all ready started")
+
+    }
+
+
+    let requireWifi = await GetUserPreferences("unlimitedMode") === "TRUE" ? false : true;
+
+    var statusText1 = "starting bitcoind";
+    var statusText2 = "please wait...";
+    if (requireWifi) {
+      statusText1 = "waiting for wifi";
+      statusText2 = "once your device is connected to wifi bitcoind sync will start";
+    }
+    this.setState({ bitcoinDTorDownloaded: true, bitcoinDStarted: true, statusText1: statusText1, statusText2: statusText2 });
+    const isRunning = await androidCoreWrapperModule.checkIfServiceIsRunning("com.mandelduck.androidcore.CoreService");
 
     var that = this;
     CustomLog("is running", isRunning);
@@ -821,7 +905,9 @@ if(rawDate == undefined){
 
       androidCoreWrapperModule.stopCore();
 
-      androidCoreWrapperModule.registerBackgroundSync(false);
+      CustomLog("require wifi", requireWifi);
+
+      androidCoreWrapperModule.registerBackgroundSync(requireWifi);
 
 
 
@@ -831,10 +917,14 @@ if(rawDate == undefined){
       that.getBlockchainInfo();
     }, that.getBlockchainInfoIntervalTime);
 
+
+    this.startTor();
+
   }
 
+   
   stopAll() {
-    const {  bitcoinDStarted } = this.state;
+    const { bitcoinDStarted } = this.state;
     if (this.LNDStarted) {
       CustomLog("stopping lnd");
       lndMobileWrapperModule.stopLND();
@@ -848,26 +938,27 @@ if(rawDate == undefined){
       androidCoreWrapperModule.cancelForeground();
 
       androidCoreWrapperModule.stopCore();
- 
+
     }
 
-    if(this.hiddenServiceStarted){
+    if (this.hiddenServiceStarted) {
       androidCoreWrapperModule.stopTorHiddenService();
-      this.hiddenServiceStarted = true;
+      this.hiddenServiceStarted = false;
       this.setState({ onionImage: onionOff, hiddenServiceStarting: false })
     }
-    this.setState({ stoppedAll: true });
+    this.stoppedAll = true;
+    this.stoppedBitcoind = true;
     var that = this;
-    setTimeout(function(){
-    that.setState({ percentage:"", syncProgress: 0, statusText1: "stopped.", statusText2: "you may now close the application" });
-    },2000);
+    setTimeout(function () {
+      that.setState({ percentage: "", syncProgress: 0, statusText1: "stopped.", statusText2: "you may now close the application" });
+    }, 2000);
 
     alert("you can now safely close the app, please reload the app inorder to restart the node")
 
 
   }
-  reindex() {
-    console.log("reindex")
+  async reindex() {
+    CustomLog("reindex")
 
     androidCoreWrapperModule.cancelJob();
 
@@ -875,38 +966,23 @@ if(rawDate == undefined){
 
     androidCoreWrapperModule.stopCore();
 
-    androidCoreWrapperModule.registerBackgroundSync(false);
+    let requireWifi = await GetUserPreferences("unlimitedMode") === "TRUE" ? false : true;
 
-    androidCoreWrapperModule.startCore(true);
+
+    CustomLog("require wifi", requireWifi);
+
+    androidCoreWrapperModule.registerBackgroundSync(requireWifi);
+
   }
 
-  async setBackendToBitcoindAndRestart() {
-
-
-    let tempData = this.state.activeData;
-
-
-    tempData.unshift({ time: 'Complete', title: '', description: 'Full sync completed, the app will shortly restart to set bitcoind as the default backend' });
-
-    this.setState({ statusText1: "starting bitcoind...", statusText2: "initial sync complete" });
-
-    console.log("Sdsd 1");
-    await new Promise(r => setTimeout(r, 10000));
-    console.log("Sdsd 2");
-    await SetUserPreferences("backend", "bitcoind");
-    console.log("Sdsd 3");
-    lndMobileWrapperModule.restartApp();
-    console.log("Sdsd 4");
-  }
   async startLND() {
 
     const { startUpData, network, backend, password } = this.state;
 
-    CustomLog("starting lnd with network", network)
-    var args = "--tor.active --tor.streamisolation --tor.v3 --listen=localhost"; //this stops neutrino working?
-    args = "";
+    CustomLog("starting lnd with network", network) 
+    
     await lndMobileWrapperModule.setUp(network);
-    console.log("set up");
+    CustomLog("set up");
 
 
     var peers = [];
@@ -923,12 +999,20 @@ if(rawDate == undefined){
       peers = peers.concat(testnetPeers);
     }
     CustomLog("testnet peers", peers);
-    var config = GetLNDConf(network, backend, password, peers);
 
-  
-      let res = await lndMobileWrapperModule.startLND(args, config, false);
-      CustomLog("lndstart", res);
-    
+    let singleNeutrinoPeer = await GetUserPreferences("neutrinoPeer", "");
+
+    const apiLevel = await DeviceInfo.getApiLevel()
+
+    const tor = await GetUserPreferences("enableTor", "false");
+
+    var config = GetLNDConf(network, backend, password, peers, singleNeutrinoPeer, tor);
+    CustomLog("api level", apiLevel);
+
+    let args = "";
+    let res = await lndMobileWrapperModule.startLND(args, config, false);
+    CustomLog("lndstart", res);
+
 
 
 
@@ -942,12 +1026,11 @@ if(rawDate == undefined){
     CustomLog("generating seed")
     let fromJavaCode = await lndMobileWrapperModule.generateSeed();
 
-    CustomLog("gen seed", fromJavaCode);
     let res = JSON.parse(fromJavaCode);
     if (res.error == null) {
       var passphrase = res.cipherSeedMnemonic_.join(" ");
       let encryptedPassphrase = encrypt(password, passphrase);
-      console.log(encryptedPassphrase);
+      CustomLog(encryptedPassphrase);
 
       await SetUserPreferences("passphrase", encryptedPassphrase);
 
@@ -956,7 +1039,7 @@ if(rawDate == undefined){
 
       CustomLog("initiated wallet", fromJavaCode);
 
-      await that.continueLoad();
+      that.continueLoad();
 
     } else {
       alert(res.error);
@@ -965,42 +1048,30 @@ if(rawDate == undefined){
   }
 
   getBlockchainInfo() {
-    const { stoppedAll,currentBitcoinDBlock } = this.state;
-
-    if( stoppedAll ){
+    CustomLog("get blockchain info..");
+    if (this.stoppedAll) {
       return;
     }
-    CustomLog("get blockchain info");
+    CustomLog("get blockchain info continue..");
     androidCoreWrapperModule.getBlockchainInfo();
-      if(currentBitcoinDBlock > 0){
-    androidCoreWrapperModule.getBlockStats(currentBitcoinDBlock); 
-      }
+
+
   }
 
   continueLoad() {
-
     this.setState({ statusText2: "connecting to LND..." })
     this.startGetInfo();
 
 
   }
-  isJSON(jsonStr) {
-    if (/^[\],:{}\s]*$/.test(jsonStr.replace(/\\["\\\/bfnrtu]/g, '@').
-      replace(/"[^"\\\n\r]*"|true|false|null|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?/g, ']').
-      replace(/(?:^|:|,)(?:\s*\[)+/g, ''))) {
-      return true;
-    }
-
-    return false;
-  }
+  
 
 
 
 
   startTor() {
-    const { stoppedAll } = this.state;
-
-    if( stoppedAll ){
+    CustomLog("start tor");
+    if (this.stoppedAll) {
       return;
     }
     this.setState({ hiddenServiceStarting: true, topStatusText: "starting hidden service..." });
@@ -1011,7 +1082,7 @@ if(rawDate == undefined){
 
     CustomLog("start get info");
 
-    const { backend, startingServices, restURL, bitcoinDTorDownloaded, bitcoinDStarted, bitcoinDSynced, startUpData, didSetConnect, LNDSynced } = this.state;
+    const { lndBlocks, backend, startingServices, restURL, bitcoinDTorDownloaded, bitcoinDStarted, bitcoinDSynced, startUpData, didSetConnect, LNDSynced } = this.state;
 
     let that = this;
 
@@ -1021,7 +1092,7 @@ if(rawDate == undefined){
 
     CustomLog("getInfoRes", res);
 
-    if (that.isJSON(res)) {
+    if (IsJSON(res)) {
       let getInfoData = JSON.parse(res);
       if (getInfoData.length == 1) {
         getInfoData = getInfoData[0];
@@ -1042,16 +1113,18 @@ if(rawDate == undefined){
 
       var globalInfo = GetGlobalInfo();
 
-    
-    globalInfo.lndGetInfo = res;
 
-    SetGlobalInfo(globalInfo);
+      globalInfo.lndGetInfo = res;
+
+      SetGlobalInfo(globalInfo);
 
 
 
 
       let latestBlockHeight = startUpData.blockHeight;
       let currentBlockHeight = getInfoData.block_height;
+
+
       if (latestBlockHeight != -1) {
 
 
@@ -1073,9 +1146,13 @@ if(rawDate == undefined){
 
         CustomLog("cbh", currentBlockHeight);
 
+        that.saveLNDBlock(currentBlockHeight, getInfoData.block_hash);
+
         if (latestBlockHeight != -1) {
 
           var progress = (currentBlockHeight / latestBlockHeight) * 100;
+
+          // progress = ((getInfoData.best_header_timestamp * 1000)/ Date.now() )*100;
           CustomLog(currentBlockHeight / latestBlockHeight);
           CustomLog("pro", progress);
           var proFixed = progress.toFixed(that.formatPercentage(progress));
@@ -1093,58 +1170,71 @@ if(rawDate == undefined){
         CustomLog("prof", progressFormatted);
 
 
-        if(backend !== "bitcoind"){
-        if (getInfoData.synced_to_chain == true) {
-
-          if (startingServices == false) {
+        if (backend !== "bitcoind") {
+          if (getInfoData.synced_to_chain == true) {
 
 
-            let tempData = that.state.activeData;
-
-
-            tempData.unshift({ time: 'Syncing', title: '', description: 'The app will now perform a full validation of the blockchain...' });
-
-            that.setState({ activeData: tempData, startingServices: true, percentage: "", syncProgress: progress, statusText1: "starting bitcoind...", statusText2: "initial sync complete" });
-
-            that.loadBitcoinServices();
+            var startUpDataTmp = startUpData;
+            startUpDataTmp.blockHeight = getInfoData.block_height;
+            that.setState({ startUpData: startUpDataTmp });
 
 
 
-          }
-          return;
 
-        } else {
-       
+            if (startingServices == false) {
 
-          if (latestBlockHeight == -1) {
-            that.setState({ percentage: "", syncProgress: 0, statusText2: "this should just take a few mins, block:" + currentBlockHeight, statusText1: "initial sync" });
+
+              let tempData = that.state.activeData;
+
+
+              tempData.unshift({ time: 'Syncing', title: '', description: 'The app will now perform a full validation of the blockchain...' });
+
+              that.setState({ activeData: tempData, startingServices: true, percentage: "", syncProgress: progress, statusText1: "starting bitcoind...", statusText2: "initial sync complete" });
+
+              that.startBitcoinD();
+
+
+
+
+            }
+
+
+            await new Promise(r => setTimeout(r, 10000));
+            that.startGetInfo();
+            return;
 
           } else {
 
-            if(progress == 100){ //if is not synced but progress is 100 its not really 100 so set to 99.99
-              progress = 99;
-              progressFormatted = "99.99%";
+
+            if (latestBlockHeight == -1) {
+              that.setState({ percentage: "", syncProgress: 0, statusText2: "this should just take a few mins, block:" + currentBlockHeight, statusText1: "initial sync" });
+
+            } else {
+
+              if (progress == 100) { //if is not synced but progress is 100 its not really 100 so set to 99.99
+                progress = 99;
+                progressFormatted = "99.99%";
+              }
+
+              that.setState({ percentage: progressFormatted, syncProgress: progress, statusText2: "this should just take a few mins", statusText1: "initial sync" });
             }
-  
-            that.setState({ percentage: progressFormatted, syncProgress: progress, statusText2: "this should just take a few mins", statusText1: "initial sync" });
+
           }
 
+        } else {
+
+          //show synced message
+
+          var tempData = that.state.activeData;
+
+          tempData = [];
+          tempData.push({ time: 'Validated', title: '', description: 'The node is fully synced and LND is running off of bitcoind' });
+          tempData.push({ time: 'Important', title: '', description: 'Make sure that this device is kept on and connected to a power and wifi source' });
+          that.setState({ activeData: tempData });
+
+
         }
-
-      }else{
-          
-        //show synced message
-
-        var tempData = that.state.activeData;
-
-        tempData = [];
-        tempData.push({ time: 'Validated', title: '', description: 'The node is fully synced and LND is running off of bitcoind' });
-        tempData.push({ time: 'Important', title: '', description: 'Make sure that this device is kept on and connected to a power and wifi source' });
-        that.setState({ activeData: tempData });
-        
-        
       }
-    }
     } else {
       CustomError("json error");
     }
@@ -1158,12 +1248,73 @@ if(rawDate == undefined){
 
 
   }
+  saveBitcoinDBlocks(blockHeight, blockHash) {
+    const { bitcoindBlocks } = this.state;
+    bitcoindBlocks[blockHeight + ""] = blockHash;
+
+    this.cleanUpSavedBlocks()
+    this.checkNeutrinoBlocks();
+  }
+  saveLNDBlock(currentBlockHeight, blockHash) {
+    const { lndBlocks } = this.state;
+    lndBlocks[currentBlockHeight + ""] = blockHash;
+
+    this.cleanUpSavedBlocks()
+    this.checkNeutrinoBlocks();
+  }
+  cleanUpSavedBlocks() {
+    const { lndBlocks, bitcoindBlocks } = this.state;
+    var keys = Object.keys(lndBlocks);
+    if (keys.length > 6) {
+      delete lndBlocks[keys[0]];
+    }
 
 
+
+    keys = Object.keys(bitcoindBlocks);
+    if (keys.length > 6) {
+      delete bitcoindBlocks[keys[0]];
+    }
+
+
+
+  }
+  checkNeutrinoBlocks() {
+
+    const { lndBlocks, bitcoindBlocks } = this.state;
+    var lndKeys = Object.keys(lndBlocks);
+    var allBlocksValid = true;
+    var lndBlockHash = "";
+    var bitcoindBlockHash = "";
+    var that = this;
+    lndKeys.forEach(aKey => {
+
+      lndBlockHash = lndBlocks[aKey];
+      bitcoindBlockHash = bitcoindBlocks[aKey];
+
+      if (lndBlockHash != undefined && bitcoindBlockHash != undefined) {
+
+        if (bitcoindBlockHash !== lndBlockHash) {
+
+          allBlocksValid = false;
+          if (allBlocksValid == false) {
+            if (that.didShowForkAlert == false) {
+              that.didShowForkAlert = true;
+              alert("invalid block detected from neutrino\n\nbitcoind: " + bitcoindBlockHash + " \n\nneutrino: " + lndBlockHash + "\n\nyou may want to enter a custom neutrino server in the app settings to make sure the app uses the fork you choose");
+            }
+          }
+          return;
+
+        }
+      }
+
+    });
+
+
+  }
   async unlockLNDWallet() {
     const { password } = this.state;
     let that = this;
-
 
     CustomLog("unlock wallet ", password)
     var fromJavaCode = await lndMobileWrapperModule.unlockWallet(password, -1);
@@ -1255,19 +1406,26 @@ if(rawDate == undefined){
     if (headers == -1) {
       blocksString = "block\n" + blocks;
     }
+
+    var percentageStr = val.toFixed(this.formatPercentage(val)) + "%";
+
+    if (val == 100) {
+      percentageStr = "100%";
+    }
     return {
       showPercentage: true,
       date: "validating " + formattedTime,
       dateRaw: { day: day, month: month, year: year },
       blocks: blocksString,
       currentBlock: blocks,
-      percentage: val.toFixed(this.formatPercentage(val)) + "%",
+      percentage: percentageStr,
       val: val
     }
 
   }
 
   goToSettings() {
+    //this.startLNDServices()
     this.props.navigation.navigate('Settings');
   }
 
@@ -1276,10 +1434,13 @@ if(rawDate == undefined){
   }
 
   render() {
-    const {syncBlocksData,showTimeLine,showFullSync, showClock,currentBlockHash, timelineProviderImage,showStop, didSetConnect, activeData, percentage, syncProgress, progressSize, statusText1, statusText2, onionImage, lightningImage, bitcoindImage, } = this.state;
+    const { debugText, syncBlocksData, showTimeLine, showFullSync, showClock, currentBlockHash, timelineProviderImage, showStop, didSetConnect, activeData, percentage, syncProgress, progressSize, statusText1, statusText2, onionImage, lightningImage, bitcoindImage, } = this.state;
     return (
       <SafeAreaView style={styles.root}>
-
+        <NavigationEvents
+          onWillFocus={this._onFocus}
+          onWillBlur={this._onBlurr}
+        />
 
         <View style={styles.container}>
           <View style={styles.topBar}>
@@ -1299,7 +1460,7 @@ if(rawDate == undefined){
                   style={styles.lightningIcon} />
               </Tooltip>
 
-
+              <Text>{debugText}</Text>
             </View>
             <TouchableOpacity style={[styles.settingsIcon]} onPress={this.goToSettings.bind(this)}>
               <Icon style={[{ color: "#9ea6a9" }]} size={22} name={'cogs'} />
@@ -1320,7 +1481,7 @@ if(rawDate == undefined){
                     width={10}
                     fill={syncProgress}
                     tintColor="#454648"
-                    onAnimationComplete={() => console.log('onAnimationComplete')}
+                    onAnimationComplete={() => CustomLog('onAnimationComplete')}
                     backgroundColor="#9ea6a9" />
                 </View>
                 <Text style={styles.percentageText}>
@@ -1350,52 +1511,52 @@ if(rawDate == undefined){
                   }
 
 
-                </View> 
-              </View> 
+                </View>
+              </View>
 
             </View>
             {showClock &&
-            <BitsAnimation style={styles.bitsAnimation} hash={currentBlockHash}/>
-  }
-   {showFullSync &&
-           <FlatList
-           data={syncBlocksData}
-           renderItem={({ item }) => <Item block={item} />}
-           keyExtractor={item => item.blockhash}
-         />
-  }
+              <BitsAnimation style={styles.bitsAnimation} hash={currentBlockHash} />
+            }
+            {showFullSync &&
+              <FlatList style={styles.blocksList}
+                data={syncBlocksData}
+                renderItem={({ item }) => <Item block={item} />}
+                keyExtractor={item => item.blockhash}
+              />
+            }
 
             {showTimeLine &&
-            <View style={styles.timelineView}>
-              <Timeline
-                data={activeData}
-                circleSize={25}
-                circleColor='rgb(247,147,27)'
-                lineColor='rgb(247,147,27)'
-                timeContainerStyle={{ minWidth: 100, marginTop: 0 }}
-                timeStyle={{ textAlign: 'center', backgroundColor: 'rgba(0,0,0,0.3)', color: 'white', padding: 5, borderRadius: 13 }}
-                descriptionStyle={{ color: 'gray' }}
-                options={{
-                  style: {
-                    paddingRight: 10,
-                    paddingLeft: 10,
-                  }
-                }}
-              />
-            </View> 
-  }
-            
-          </View> 
-         
-           
-        </View> 
+              <View style={styles.timelineView}>
+                <Timeline
+                  data={activeData}
+                  circleSize={25}
+                  circleColor='rgb(247,147,27)'
+                  lineColor='rgb(247,147,27)'
+                  timeContainerStyle={{ minWidth: 100, marginTop: 0 }}
+                  timeStyle={{ textAlign: 'center', backgroundColor: 'rgba(0,0,0,0.3)', color: 'white', padding: 5, borderRadius: 13 }}
+                  descriptionStyle={{ color: 'gray' }}
+                  options={{
+                    style: {
+                      paddingRight: 10,
+                      paddingLeft: 10,
+                    }
+                  }}
+                />
+              </View>
+            }
+
+          </View>
+
+
+        </View>
         {showTimeLine &&
-        <View style={styles.timelineProvider}>
+          <View style={styles.timelineProvider}>
             <Text style={styles.timelineProviderText}>timeline data by</Text>
             <Image source={timelineProviderImage}
-                  style={styles.timelineProviderImage} />
-            </View>
-  }
+              style={styles.timelineProviderImage} />
+          </View>
+        }
 
       </SafeAreaView>
 

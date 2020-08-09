@@ -14,6 +14,10 @@ export default StyleSheet.create({
     alignItems: 'center',
     width: Dimensions.get('window').width,
   },
+  webView:{
+    width: Dimensions.get('window').width,
+     
+  },
   introItemImage: {
     marginLeft: 15,
     height: 80,
@@ -132,7 +136,12 @@ export default StyleSheet.create({
     width: '100%',
     justifyContent: 'center',
   },
-
+  toggleText:{
+    marginTop:4,
+    color: AppStyles.color.appBlack,
+    fontFamily: AppStyles.color.appFont,
+    fontSize: 18,
+  },
   simpleButtonText: {
     color: AppStyles.color.appBlack,
     textAlign: 'center',
@@ -141,6 +150,12 @@ export default StyleSheet.create({
   },
   simpleButtonTextSmall: {
     color: AppStyles.color.appBlack,
+    textAlign: 'center',
+    fontFamily: AppStyles.color.appFont,
+    fontSize: 20,
+  },
+  simpleButtonTextSmallWhite: {
+    color: "white",
     textAlign: 'center',
     fontFamily: AppStyles.color.appFont,
     fontSize: 20,

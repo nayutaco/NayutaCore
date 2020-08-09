@@ -1,24 +1,50 @@
 import { StyleSheet, Dimensions } from 'react-native'
-import AppStyles from '../../AppStyles'; 
+import AppStyles from '../../AppStyles';
 
-const { height,width } = Dimensions.get("window");
-  
+const { height, width } = Dimensions.get("window");
+
 export default StyleSheet.create({
-  blockCell:{
-    width:"100%", 
-    flex:1,
-    height:200, 
+  blocksList: {
+    marginTop: 20,
+  },
+  blockCell: {
+    width: "100%",
+    flex: 1,
+    height: 210,
     justifyContent: 'center',
-    alignItems: 'center', 
+    alignItems: 'center',
   },
-  blockCellInner:{
-    width:width - 20,
-    height:180,    
-    backgroundColor:"gray", 
+  blockCellInner: {
+    width: width - 20,
+    height: 190,
+    borderRadius: 15,
+    backgroundColor: 'rgba(0,0,0,0.1)',
   },
-  blockTitle:{
-    marginTop:5,
-    marginLeft:10,
+  blockCellInfo: {
+    marginTop: 7,
+    height: 130
+
+  },
+  blockInfoRow: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'flex-start'
+  },
+  blockTitle: {
+    marginTop: 10,
+    marginLeft: 15,
+    fontSize: 20,
+    fontFamily: AppStyles.color.appFont,
+  },
+  blockSubTitleText: {
+    marginLeft: 5,
+    fontSize: 15,
+    color: 'rgba(0,0,0,0.6)'
+  },
+  blockSubTitle: {
+    marginLeft: 15,
+    fontSize: 15
   },
   outer: {
     position: "relative",
@@ -36,41 +62,41 @@ export default StyleSheet.create({
   root: {
     flex: 1,
   },
-  onionIcon:{
-    opacity:0.5,
-    marginLeft:10,
-    marginTop:10,
-    width:30,
-    height:30
+  onionIcon: {
+    opacity: 0.5,
+    marginLeft: 10,
+    marginTop: 10,
+    width: 30,
+    height: 30
   },
-  lightningIcon:{
-    opacity:0.5,
-    marginLeft:10,
-    marginTop:10,
-    width:30,
-    height:30
+  lightningIcon: {
+    opacity: 0.5,
+    marginLeft: 10,
+    marginTop: 10,
+    width: 30,
+    height: 30
   },
-  bitcoindIcon:{
-    opacity:0.5,
-    marginLeft:10,
-    marginTop:10,
-    width:30,
-    height:30
+  bitcoindIcon: {
+    opacity: 0.5,
+    marginLeft: 10,
+    marginTop: 10,
+    width: 30,
+    height: 30
   },
-  topIcons:{ 
-flexDirection:'row',
-width:'30%',
+  topIcons: {
+    flexDirection: 'row',
+    width: '30%',
   },
-  topBar:{  
-    
-width:'100%'
+  topBar: {
+
+    width: '100%'
   },
   statusTopView: {
-    marginTop:10,
-    paddingRight:10,
-    position:'absolute',
-    alignSelf: 'flex-end', 
-    flexDirection: 'row', 
+    marginTop: 10,
+    paddingRight: 10,
+    position: 'absolute',
+    alignSelf: 'flex-end',
+    flexDirection: 'row',
   },
   chartOuter: {
     backgroundColor: AppStyles.color.appBlack,
@@ -81,22 +107,22 @@ width:'100%'
   },
   spinner: {
     color: AppStyles.color.appBlack
-  },  
-  container: { 
+  },
+  container: {
     width: '100%'
   },
   settingsIcon: {
-    marginTop:10,
-    paddingRight:10,
-    position:'absolute',
-    alignSelf: 'flex-end', 
-    flexDirection: 'row', 
-    width:40,
-    height:40
+    marginTop: 10,
+    paddingRight: 10,
+    position: 'absolute',
+    alignSelf: 'flex-end',
+    flexDirection: 'row',
+    width: 40,
+    height: 40
   },
   content: {
     height: height * 20
-  }, 
+  },
   seperator: {
     marginTop: 10,
     width: '90%',
@@ -123,7 +149,7 @@ width:'100%'
     textAlign: 'left',
     fontFamily: 'sans-serif-light',
     fontSize: 20,
-  }, 
+  },
   nodeStatusText: {
     textAlign: 'right',
     alignSelf: 'flex-end',
@@ -133,8 +159,8 @@ width:'100%'
     marginTop: 10,
 
   },
-  topButtons:{  
-    flexDirection:'row',  
+  topButtons: {
+    flexDirection: 'row',
   },
 
   roundedButtonText: {
@@ -144,34 +170,31 @@ width:'100%'
     fontSize: 17,
   },
 
- 
-  topView:{
-   marginTop:10,
-    width:"100%",
-    height:width*0.4,
-     flexDirection: 'row'
+
+  topView: {
+    marginTop: 10,
+    width: "100%",
+    height: width * 0.4,
+    flexDirection: 'row'
   },
-  detailsView:{
-    paddingLeft:3,
-   // backgroundColor:"blue",
-    width:"60%", 
-    height:"100%",
-    justifyContent:'center',
+  detailsView: {
+    paddingLeft: 3, 
+    width: "60%",
+    height: "100%",
+    justifyContent: 'center',
   },
   progressView: { 
-    //backgroundColor:"green",
-    width:"42%",  
-    
-    height:"100%" ,
-    justifyContent:'center',
-    alignItems:'center'
+    width: "42%", 
+    height: "100%",
+    justifyContent: 'center',
+    alignItems: 'center'
   },
-  circularProgressView: {  
+  circularProgressView: {
   },
 
   roundedButton: {
-    marginTop:20,
-    marginRight:10,
+    marginTop: 20,
+    marginRight: 10,
     alignSelf: 'flex-start',
     height: 35,
     width: 90,
@@ -181,7 +204,7 @@ width:'100%'
     justifyContent: 'center',
     backgroundColor: AppStyles.color.appBlack,
   },
- 
+
   simpleButtonText: {
     color: 'white',
     textAlign: 'center',
@@ -190,29 +213,29 @@ width:'100%'
   },
 
 
-  percentageText:{   
-    width:"100%",
-    position:'absolute', 
+  percentageText: {
+    width: "100%",
+    position: 'absolute',
     color: 'rgba(0,0,0,0.8)',
     textAlign: 'center',
     fontFamily: AppStyles.color.appFont,
     fontSize: 37,
   },
-  statusText1: { 
-    paddingRight:10,
+  statusText1: {
+    paddingRight: 10,
     color: 'rgba(0,0,0,0.7)',
     textAlign: 'left',
     fontFamily: AppStyles.color.appFont,
     fontSize: 28,
-  }, 
+  },
   statusText2: {
-    marginTop:20,
-    paddingRight:30,
+    marginTop: 20,
+    paddingRight: 30,
     color: 'rgba(0,0,0,0.4)',
     textAlign: 'left',
     fontFamily: AppStyles.color.appFont,
     fontSize: 20,
-  },  
+  },
 
   buttonsContainer: {
     marginTop: 30,
@@ -221,16 +244,16 @@ width:'100%'
     justifyContent: 'center',
     width: '100%',
   },
-timelineView:{   
-  marginTop: 20,
-  width: '100%', 
-  height:height - (width*0.6),
-  paddingBottom:20,
-  
-},
+  timelineView: {
+    marginTop: 20,
+    width: '100%',
+    height: height - (width * 0.6),
+    paddingBottom: 20,
+
+  },
   innerView: {
     height: Dimensions.get('window').height,
-    width: Dimensions.get('window').width, 
+    width: Dimensions.get('window').width,
   },
 
   progressTextLarge: {
@@ -268,21 +291,21 @@ timelineView:{
     textAlign: "center",
 
   },
-  timelineProvider: {  
-width:100,
-height:60,  
-justifyContent: 'flex-end',
-position: 'absolute', 
-left:5,
-bottom: 5
+  timelineProvider: {
+    width: 100,
+    height: 60,
+    justifyContent: 'flex-end',
+    position: 'absolute',
+    left: 5,
+    bottom: 5
   },
 
-  timelineProviderImage:{ 
-    width:100,
-    height:35,
-    resizeMode:"contain"
+  timelineProviderImage: {
+    width: 100,
+    height: 35,
+    resizeMode: "contain"
   },
-  timelineProviderText:{
+  timelineProviderText: {
     fontFamily: AppStyles.color.appFont,
     fontSize: 10,
     textAlign: "center",
@@ -307,7 +330,7 @@ bottom: 5
   contentContainer: {
     paddingTop: 30,
   },
-  bitsAnimation:{
+  bitsAnimation: {
     marginTop: 20,
   },
   welcomeContainer: {
