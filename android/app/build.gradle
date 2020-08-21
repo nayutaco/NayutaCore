@@ -121,7 +121,14 @@ def enableHermes = project.ext.react.get("enableHermes", false);
 
 android {
     sourceSets{
-        main.java.srcDirs += "${protobuf.generatedFilesBaseDir}/debug/javalite"
+       // main.java.srcDirs += "${protobuf.generatedFilesBaseDir}/debug/javalite"
+        
+    }
+     packagingOptions {
+        pickFirst 'lib/x86/libc++_shared.so'
+        pickFirst 'lib/x86_64/libc++_shared.so'
+        pickFirst 'lib/armeabi-v7a/libc++_shared.so'
+        pickFirst 'lib/arm64-v8a/libc++_shared.so'
     }
     compileSdkVersion rootProject.ext.compileSdkVersion
 
@@ -134,18 +141,31 @@ android {
         applicationId "com.nayutabox"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 25
-        versionName "0.1.24"
+        versionCode 31
+        versionName "0.1.30"
+        ndk {
+            // Tells Gradle to build outputs for the following ABIs and package
+            // them into your APK.
+            abiFilters 'x86', 'x86_64', 'armeabi-v7a', 'arm64-v8a' 
+        }
     }
     splits {
         abi {
             reset()
             enable enableSeparateBuildPerCPUArchitecture
             universalApk false  // If true, also generate a universal APK
-            include "armeabi-v7a", "x86", "arm64-v8a", "x86_64"
+            include "armeabi-v7a", "x86", "arm64-v8a", "x86_64" 
         }
     }
     signingConfigs {
+         release {
+            if (project.hasProperty('MYAPP_UPLOAD_STORE_FILE')) {
+                storeFile file(MYAPP_UPLOAD_STORE_FILE)
+                storePassword MYAPP_UPLOAD_STORE_PASSWORD
+                keyAlias MYAPP_UPLOAD_KEY_ALIAS
+                keyPassword MYAPP_UPLOAD_KEY_PASSWORD
+            }
+        } 
         debug {
             storeFile file('debug.keystore')
             storePassword 'android'
@@ -160,17 +180,23 @@ android {
         release {
             // Caution! In production, you need to generate your own keystore file.
             // see https://facebook.github.io/react-native/docs/signed-apk-android.
-            signingConfig signingConfigs.debug
+            signingConfig signingConfigs.release
+            //signingConfig signingConfigs.debug
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
+            ndk {
+                abiFilters "armeabi-v7a", "x86", 'arm64-v8a' 
+            }
         }
+
+         
     }
     // applicationVariants are e.g. debug, release
     applicationVariants.all { variant ->
         variant.outputs.each { output ->
             // For each separate APK per architecture, set a unique version code as described here:
             // https://developer.android.com/studio/build/configure-apk-splits.html
-            def versionCodes = ["armeabi-v7a": 1, "x86": 2, "arm64-v8a": 3, "x86_64": 4]
+            def versionCodes = ["armeabi-v7a": 1, "x86": 2, "arm64-v8a": 3, "x86_64": 4  ]
             def abi = output.getFilter(OutputFile.ABI)
             if (abi != null) {  // null for the universal-debug, universal-release variants
                 output.versionCodeOverride =

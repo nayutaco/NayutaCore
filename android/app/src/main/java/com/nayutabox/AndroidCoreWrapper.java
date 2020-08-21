@@ -168,6 +168,13 @@ public class AndroidCoreWrapper extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
+  public void startWifiCheck() {
+
+    com.mandelduck.androidcore.MainController.StartWifiCheck();
+
+  }
+
+  @ReactMethod
   public void cancelJob() {
 
     com.mandelduck.androidcore.MainController.cancelJob();

@@ -2,6 +2,8 @@ import React, { Component } from 'react';
 import styles from './SettingsScreenStyles'; 
 import { Icon } from 'react-native-elements'
 import * as Keychain from 'react-native-keychain'; 
+
+import { decrypt } from 'react-native-simple-encryption';
 import { GetGlobalInfo, CustomLog, GetUserPreferences, SetUserPreferences } from '../../tools/utils';
 import DeviceInfo from 'react-native-device-info';
 import DialogInput from 'react-native-dialog-input';

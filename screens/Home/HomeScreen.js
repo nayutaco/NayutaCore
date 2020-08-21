@@ -21,7 +21,7 @@ import {
   View,
   Animated,
   SafeAreaView,
-  FlatList, 
+  FlatList,
   BackHandler,
   DeviceEventEmitter
 } from 'react-native';
@@ -74,7 +74,7 @@ class HomeScreen extends Component {
   lastBitcoinGetInfo = null;
   LNDStarted = false;
   didShowConnect = false;
-  getBlockchainInfoIntervalTime = 2000;
+  getBlockchainInfoIntervalTime = 1000;
   gettingBlockchainInfo = false;
   didStartLND = false;
   didStartBitcoind = false;
@@ -286,7 +286,7 @@ class HomeScreen extends Component {
     globalInfo.network = network;
 
     SetGlobalInfo(globalInfo);
- 
+
     await this.startProcess();
 
   }
@@ -347,7 +347,7 @@ class HomeScreen extends Component {
       that.setState({ backend: backend })
     }
     CustomLog("backend ", that.state.backend);
- 
+
 
     this.loadBitcoinServices();
 
@@ -477,7 +477,7 @@ class HomeScreen extends Component {
       this.setState({ statusText2: "LND already running..." })
       this.startGetInfo();
     } else {
-      this.startLND() 
+      this.startLND()
     }
 
     this.showInitialMessages();
@@ -678,6 +678,30 @@ class HomeScreen extends Component {
             if (bitcoinDStarted) {
               alert(jsonData.response);
             }
+
+            else if (jsonData.response.indexOf("hidden service error") != -1) {
+              CustomLog("hidden service error");
+              console.log("Sdsdsd idden service error");
+              that.hiddenServiceStarted = false;
+              that.setState({ onionImage: onionOff, hiddenServiceStarting: false })
+
+              if (that.LNDStarted == false) {
+
+
+
+                CustomLog("loading from api anyway");
+                that.loadStartUpInfo();
+
+                that.ShowConnectButton();
+
+                that.setState({ onionImage: onionOn, hiddenServiceStarting: true });
+
+              }
+
+            }
+
+
+
           }
         } else {
 
@@ -687,10 +711,10 @@ class HomeScreen extends Component {
             that.startTor();
           }
           else if (jsonData.response === "download") {
-              //do nothing for now
+            //do nothing for now
           }
           else if (jsonData.response == "already started") {
-              //do nothing for now
+            //do nothing for now
           }
           else if (jsonData.response == "hidden service started") {
             CustomLog("hidden service started, show connect button " + that.hiddenServiceStarted);
@@ -704,20 +728,10 @@ class HomeScreen extends Component {
 
             that.ShowConnectButton();
 
-
-
-
             that.setState({ onionImage: onionOn, hiddenServiceStarting: true });
 
-
-
           }
-          else if (jsonData.response.indexOf("hidden service error") != -1) {
-            CustomLog("hidden service error");
-            that.hiddenServiceStarted = false;
-            that.setState({ onionImage: onionOff, hiddenServiceStarting: false })
 
-          }
           else if (jsonData.response == "starting") {
 
             that.setState({ bitcoindImage: bitcoindOn, bitcoinDStarted: true })
@@ -812,7 +826,7 @@ class HomeScreen extends Component {
               if (that.containsBlock(syncBlocksData, obj) == false) {
                 CustomLog("added to array");
                 obj.time = that.formatTime(obj.time);
-                syncBlocksData.push(obj); 
+                syncBlocksData.push(obj);
               }
 
               var syncBlocksDataTmp = syncBlocksData;
@@ -839,18 +853,8 @@ class HomeScreen extends Component {
     });
 
 
-    androidCoreWrapperModule.checkIfDownloaded((fromJavaCode) => {
-      if (fromJavaCode == false) {
+    that.startTor();
 
-        CustomLog("not downloaded", fromJavaCode)
-
-        that.setState({ statusText2: "downloading bitcoind and tor..." });
-        androidCoreWrapperModule.startDownload();
-      } else {
-        that.startTor();
-
-      }
-    })
 
   }
 
@@ -894,11 +898,16 @@ class HomeScreen extends Component {
     var that = this;
     CustomLog("is running", isRunning);
     if (isRunning) {
-
+      this.setState({ debugText: "already running bitcoind" });
       CustomLog("service is running");
-    } else {
 
+      androidCoreWrapperModule.startWifiCheck();
+
+    } else {
+      this.setState({ debugText: "bitcoind not running" });
       CustomLog("service is not running");
+
+
       androidCoreWrapperModule.cancelJob();
 
       androidCoreWrapperModule.cancelForeground();
@@ -909,9 +918,10 @@ class HomeScreen extends Component {
 
       androidCoreWrapperModule.registerBackgroundSync(requireWifi);
 
-
-
     }
+
+
+
 
     setTimeout(function () {
       that.getBlockchainInfo();
@@ -922,7 +932,7 @@ class HomeScreen extends Component {
 
   }
 
-   
+
   stopAll() {
     const { bitcoinDStarted } = this.state;
     if (this.LNDStarted) {
@@ -979,8 +989,8 @@ class HomeScreen extends Component {
 
     const { startUpData, network, backend, password } = this.state;
 
-    CustomLog("starting lnd with network", network) 
-    
+    CustomLog("starting lnd with network", network)
+
     await lndMobileWrapperModule.setUp(network);
     CustomLog("set up");
 
@@ -989,7 +999,7 @@ class HomeScreen extends Component {
     let nayutaPeer = GetNodeFromStartUpData(startUpData);
 
     if (nayutaPeer != undefined && nayutaPeer != null) {
-      peers.push(nayutaPeer);
+      // peers.push(nayutaPeer);
     }
 
     if (network === "testnet") {
@@ -1064,7 +1074,7 @@ class HomeScreen extends Component {
 
 
   }
-  
+
 
 
 
@@ -1460,7 +1470,7 @@ class HomeScreen extends Component {
                   style={styles.lightningIcon} />
               </Tooltip>
 
-              <Text>{debugText}</Text>
+              {/*<Text>{debugText}</Text>*/}
             </View>
             <TouchableOpacity style={[styles.settingsIcon]} onPress={this.goToSettings.bind(this)}>
               <Icon style={[{ color: "#9ea6a9" }]} size={22} name={'cogs'} />
