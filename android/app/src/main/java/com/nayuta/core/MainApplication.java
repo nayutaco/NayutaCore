@@ -1,4 +1,4 @@
-package com.nayutabox;
+package com.nayuta.core;
 
 import android.app.Application;
 import android.content.Context;

@@ -1,16 +1,16 @@
 {
   "project_info": {
     "project_number": "505132888797",
-    "firebase_url": "https://nayutabox-6b232.firebaseio.com",
-    "project_id": "nayutabox-6b232",
-    "storage_bucket": "nayutabox-6b232.appspot.com"
+    "firebase_url": "https://nayutacore-6b232.firebaseio.com",
+    "project_id": "nayutacore-6b232",
+    "storage_bucket": "nayutacore-6b232.appspot.com"
   },
   "client": [
     {
       "client_info": {
         "mobilesdk_app_id": "1:505132888797:android:6383016dd21943a06ee134",
         "android_client_info": {
-          "package_name": "com.nayutabox"
+          "package_name": "com.nayuta.core"
         }
       },
       "oauth_client": [

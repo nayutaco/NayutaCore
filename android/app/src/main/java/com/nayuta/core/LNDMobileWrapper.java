@@ -1,4 +1,4 @@
-package com.nayutabox;
+package com.nayuta.core;
 import android.net.Uri;
 import android.content.Intent;
 import android.content.Context;
@@ -967,7 +967,7 @@ public class LNDMobileWrapper extends ReactContextBaseJavaModule {
         }
       //  Uri path = Uri.fromFile(filelocation);
 
-        Uri path = FileProvider.getUriForFile(reactContext,"com.nayutabox.file.provider",filelocation);
+        Uri path = FileProvider.getUriForFile(reactContext,"com.nayuta.core.file.provider",filelocation);
 
 
 
@@ -989,7 +989,7 @@ public class LNDMobileWrapper extends ReactContextBaseJavaModule {
 
         File filelocation2 = new File(outputPath3, filename2);
 
-        Uri path2 = FileProvider.getUriForFile(reactContext,"com.nayutabox.file.provider",filelocation2);
+        Uri path2 = FileProvider.getUriForFile(reactContext,"com.nayuta.core.file.provider",filelocation2);
 
         Intent emailIntent = new Intent(Intent.ACTION_SEND_MULTIPLE);
 // set the type to 'email'

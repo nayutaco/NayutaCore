@@ -549,7 +549,7 @@ class HomeScreen extends Component {
     return false
   }
   addNewEvent(rawDate) {
-
+console.log("adding new date",rawDate);
     if (rawDate == undefined) {
       return;
     }
@@ -574,8 +574,9 @@ class HomeScreen extends Component {
 
       var anEvent = this.state.data[key];
       let prospectiveEvent = { time: this.formatDate(key), title: anEvent[0] + '\n' + anEvent[1], description: anEvent[2] };
-
-      if (year == rawDate.year && month == rawDate.month && day == rawDate.day) {
+ 
+      if (year <= rawDate.year && month <= rawDate.month && day <= rawDate.day) {
+ 
         CustomLog("days match");
         if (!this.isEventAdded(prospectiveEvent)) {
           tempData.unshift(prospectiveEvent)

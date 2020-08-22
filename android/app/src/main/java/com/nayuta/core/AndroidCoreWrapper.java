@@ -1,6 +1,6 @@
 // AndroidCoreWrapper.java
 
-package com.nayutabox;
+package com.nayuta.core;
 
 import android.app.AlarmManager;
 import android.app.Notification;
@@ -40,7 +40,7 @@ import com.indiesquare.androidcrypto.AndroidCrypto;
 import com.mandelduck.lndmobilewrapper.*;
 import com.mandelduck.androidcore.*;
 
-import static com.nayutabox.MainActivity.NOTIFICATION_CHANNEL_ID;
+import static com.nayuta.core.MainActivity.NOTIFICATION_CHANNEL_ID;
 import static com.swmansion.reanimated.MapUtils.getString;
 
 public class AndroidCoreWrapper extends ReactContextBaseJavaModule {
