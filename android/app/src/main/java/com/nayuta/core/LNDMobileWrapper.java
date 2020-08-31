@@ -481,6 +481,7 @@ public class LNDMobileWrapper extends ReactContextBaseJavaModule {
         byte[] bytes = StopRequest.getDefaultInstance().toByteArray();
        Lndmobile.stopDaemon(bytes, new RPCCallback());
 
+
     }
 
     @ReactMethod

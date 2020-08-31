@@ -87,23 +87,21 @@ export default class ConnectScreen extends Component {
 
     if (type == "rest-local") {
       CustomLog("rest local", localRESTConnectURI);
-      this.setState({ lndConnectURI: localRESTConnectURI });
+      this.setState({ lndConnectURI: localRESTConnectURI }, function () {
       this.writeToClipboard();
+      });
     }
     else if (type == "grpc-local") {
       CustomLog("grpc local", localGRPCConnectURI);
-      this.setState({ lndConnectURI: localGRPCConnectURI });
-      this.writeToClipboard();
+      this.setState({ lndConnectURI: localGRPCConnectURI }, function () {
+        this.writeToClipboard();
+        });
     }
     else if (type == "rest-remote") {
       CustomLog("rest remote", remoteRESTConnectURI);
       this.setState({ showQRCode: true, lndConnectURI: remoteRESTConnectURI, showQRCodeView: true });
     }
-    let that = this;
-    setTimeout(function () {
-
-    }, 100);
-
+    
 
   }
 
@@ -117,8 +115,12 @@ export default class ConnectScreen extends Component {
   }
 
   writeToClipboard = async () => {
+    if(this.state.lndConnectURI.length > 0){
     await Clipboard.setString(this.state.lndConnectURI);
     alert('Copied to Clipboard');
+    }else{
+      alert('not ready yet');
+    }
 
   };
 

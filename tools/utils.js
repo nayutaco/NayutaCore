@@ -75,8 +75,8 @@ export function GetLNDConf(network, backend, password, peers, fixedPeer, tor) {
   configString += "maxbackoff=2s\n"
   configString += "debuglevel=info\n"
  
-  configString += "listen=localhost\n"
-  configString += "listen=0.0.0.0:9739\n"//so it doesnt clash with other wallets
+  //configString += "listen=localhost\n"
+  configString += "listen=0.0.0.0:9730\n"//so it doesnt clash with other wallets 
   //configString += "sync-freelist=0\n"
   configString += "rpclisten=127.0.0.1:10009\n"
   configString += "restlisten=127.0.0.1:8080\n"

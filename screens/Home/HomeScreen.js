@@ -1002,13 +1002,13 @@ console.log("adding new date",rawDate);
     if (nayutaPeer != undefined && nayutaPeer != null) {
       // peers.push(nayutaPeer);
     }
-
+    /*
     if (network === "testnet") {
       let testnetPeers = GetTestnetPeers();
 
       CustomLog("testnet peers", testnetPeers);
       peers = peers.concat(testnetPeers);
-    }
+    }*/
     CustomLog("testnet peers", peers);
 
     let singleNeutrinoPeer = await GetUserPreferences("neutrinoPeer", "");
